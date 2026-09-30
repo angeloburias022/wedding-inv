@@ -1,0 +1,50 @@
+{
+  "opening": {
+    "eyebrow": "With love, for",
+    "cta": "Open invitation",
+    "signature": "Designed & built by Angelo"
+  },
+  "story": {
+    "eyebrow": "Our story",
+    "title": "Us"
+  },
+  "day": {
+    "eyebrow": "The day",
+    "title": "A day we have been waiting for."
+  },
+  "place": {
+    "eyebrow": "The place",
+    "title": "Where our next chapter begins.",
+    "caption": "A historic place, now part of our story.",
+    "mapCta": "View map"
+  },
+  "onlineCeremony": {
+    "eyebrow": "Watch from home",
+    "jumpLink": "Watching from home?",
+    "message": "Can't join us in Melbourne? We'll share a link here for anyone who would like to watch the ceremony from home.",
+    "liveMessage": "Can't join us in Melbourne? Watch the ceremony live, wherever you are.",
+    "cta": "Watch the ceremony",
+    "startingSoon": "Starting soon",
+    "liveNow": "Live now",
+    "replay": "Watch the replay",
+    "openInYouTube": "Open in YouTube"
+  },
+  "rsvp": {
+    "eyebrow": "RSVP",
+    "title": "Will you celebrate with us?",
+    "yes": "Joyfully, yes",
+    "no": "We're sorry, we can't",
+    "noSingular": "I'm sorry, I can't",
+    "whoLabel": "Who will be joining us?",
+    "dietaryLabel": "Dietary requirements",
+    "dietaryPlaceholder": "No restrictions",
+    "messageLabel": "A message for Angelo & Gichelle",
+    "submit": "Send RSVP",
+    "thanksYes": "Thank you — we can't wait to see you.",
+    "thanksNo": "Thank you for letting us know. You'll be missed."
+  },
+  "closing": {
+    "message": "We can't wait to celebrate with you.",
+    "backToTop": "Back to top"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "ceremony": {
+    "label": "Ceremony",
+    "time": "2:00 PM",
+    "venue": "Old Treasury Building",
+    "room": "Margaret Craig Room",
+    "address": "20 Spring Street, East Melbourne VIC 3002",
+    "note": null
+  },
+  "reception": {
+    "label": "Dinner & Celebration",
+    "time": "6:00 PM",
+    "venue": "KBBQ Venue",
+    "room": null,
+    "address": "Melbourne, Victoria, Australia",
+    "note": "Come celebrate, eat, and stay awhile."
+  },
+  "details": {
+    "dressCode": null,
+    "parking": null,
+    "transportation": null
+  }
+}

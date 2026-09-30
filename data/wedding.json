@@ -1,0 +1,42 @@
+{
+  "couple": {
+    "groom": "Angelo",
+    "bride": "Gichelle",
+    "displayName": "Angelo & Gichelle",
+    "monogram": "A & G"
+  },
+  "date": {
+    "display": "10 February 2027",
+    "iso": "2027-02-10"
+  },
+  "location": {
+    "city": "Melbourne",
+    "region": "VIC",
+    "country": "Australia",
+    "venue": "Old Treasury Building",
+    "room": "Margaret Craig Room",
+    "address": "20 Spring Street, East Melbourne VIC 3002",
+    "directions": null,
+    "image": "/images/old-treasury-exterior.webp",
+    "video": null
+  },
+  "onlineCeremony": {
+    "enabled": true,
+    "platform": "youtube",
+    "url": null,
+    "startsAt": "2027-02-10T14:00:00+11:00",
+    "timeZones": [
+      { "label": "Melbourne", "zone": "Australia/Melbourne" },
+      { "label": "Manila", "zone": "Asia/Manila" }
+    ]
+  },
+  "settings": {
+    "theme": "heritage",
+    "sections": {
+      "story": true,
+      "day": true,
+      "place": true,
+      "rsvp": true
+    }
+  }
+}

@@ -1,26 +1,111 @@
 @import "tailwindcss";
 
+/*
+ * Semantic theme tokens (handoff §14, §15, §25).
+ * Components only use these names (bg-background, text-ink, text-muted,
+ * text-accent, border-line…). The default values are Soft Heritage; other
+ * themes override the same variables under [data-theme].
+ */
+@theme static {
+  --color-background: #f5f1e8; /* Warm Ivory */
+  --color-surface: #fcfaf5; /* Surface Ivory */
+  --color-ink: #242220; /* Soft Black */
+  --color-muted: #626653; /* Muted Olive */
+  --color-accent: #6b3038; /* Deep Burgundy */
+  --color-line: #d8d1c5; /* Stone */
+  --color-detail: #9a8158; /* Muted Brass */
+
+  --font-display: var(--font-cormorant), "Times New Roman", serif;
+  --font-sans: var(--font-jost), system-ui, sans-serif;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --photo-filter: sepia(0.12) saturate(0.9);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+[data-theme="editorial"] {
+  --color-background: #f8f8f6; /* Off-white */
+  --color-surface: #ffffff; /* White */
+  --color-ink: #1c1c1c; /* Near-black */
+  --color-muted: #6f6f6f; /* Gray, darkened from #777 for AA contrast */
+  --color-accent: #1c1c1c;
+  --color-line: #d9d9d9; /* Light gray */
+  --color-detail: #6f6f6f;
+  --photo-filter: grayscale(1) contrast(1.05);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Small uppercase label style used for eyebrows, dates and CTAs. */
+@utility label {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+/*
+ * Opening entrance (handoff §4, §20). Pure CSS so it plays from the
+ * server-rendered HTML — the guest's name never waits for JavaScript.
+ * Use with style={{ animationDelay }} and optionally --rise.
+ */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(var(--rise, 0px));
+  }
+}
+
+@utility animate-rise {
+  animation: rise 1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/*
+ * Floral corner crops keep their ivory backdrop; fade them out from their
+ * corner (--fade-origin) so the crop edges melt into the page background.
+ * The long tail thins the leaf shadows into translucent depth instead of
+ * ending them at a visible edge.
+ */
+.floral-corner {
+  height: auto;
+  mask-image: radial-gradient(
+    farthest-side at var(--fade-origin),
+    #000 45%,
+    rgb(0 0 0 / 0.7) 68%,
+    rgb(0 0 0 / 0.25) 86%,
+    transparent 100%
+  );
+  filter: var(--photo-filter);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .animate-rise {
+    animation: none;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-background);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  transition:
+    background-color 600ms ease,
+    color 600ms ease;
+}
+
+::selection {
+  background: var(--color-accent);
+  color: var(--color-surface);
+}
+
+:focus-visible {
+  outline: 1px solid var(--color-accent);
+  outline-offset: 4px;
 }

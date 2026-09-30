@@ -1,0 +1,24 @@
+[
+  {
+    "code": "7XK92M",
+    "type": "couple",
+    "names": ["Rhea", "Erwin"]
+  },
+  {
+    "code": "4Q8N2P",
+    "type": "individual",
+    "names": ["Maria"]
+  },
+  {
+    "code": "A81K3P",
+    "type": "family",
+    "familyName": "Santos",
+    "names": ["Jose", "Carmen", "Luis", "Ana"]
+  },
+  {
+    "code": "R5F7TW",
+    "type": "group",
+    "names": ["Rhea", "Kim", "Joy"],
+    "displayName": "Rhea & Friends"
+  }
+]

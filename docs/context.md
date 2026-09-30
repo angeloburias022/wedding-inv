@@ -1,0 +1,294 @@
+# Development Context — Angelo & Gichelle Wedding Invitation
+
+This file holds the running context of the project's development: the current
+state, decisions made, open questions and a log of changes. Update it whenever
+something changes.
+
+The full product/design/architecture spec lives next to this file in
+`docs/angelo-gichelle-wedding-invitation-handoff.md` (the "handoff"). This file
+summarises it and records what has happened since.
+
+------------------------------------------------------------------------
+
+## Project snapshot
+
+- **What:** Personalised digital wedding invitation, paired with a 5×7
+  folded physical card. "One invitation, two mediums."
+- **Wedding:** 10 February 2027, Melbourne, Australia
+- **Couple:** Angelo & Gichelle (monogram "A & G")
+- **Signature:** "Designed & built by Angelo"
+- **Stack:** Next.js 16.3 (App Router) + TypeScript + Tailwind CSS v4 +
+  Motion (the renamed Framer Motion, `motion` package), on Vercel
+- **Code:** `wedding-invitation/` (Node 24 via `.nvmrc`; your default Node 18
+  is too old — run `nvm use` in that folder). Both docs live in its `docs/`
+  folder (moved in from the parent folder on 2026-10-01).
+- **Content:** JSON in GitHub (`wedding`, `guests`, `story`, `events`,
+  `content`)
+- **RSVP storage:** Google Sheet via an Apps Script web app (never GitHub or
+  the filesystem). Setup steps are in the project `README.md`.
+- **Design source of truth:** Figma
+- **Primary target:** Mobile (390×844); desktop 1440×900
+- **Planned domain:** angeloandgichelle.com
+- **Venue:** Old Treasury Building, Margaret Craig Room, 20 Spring Street,
+  East Melbourne VIC 3002 (a Victorian Marriage Registry ceremony room)
+
+## Page flow
+
+Personalised opening → US (5–7 milestone timeline) → THE DAY (ceremony
+2:00 PM at the Old Treasury Building, then "Dinner & Celebration" KBBQ at 6:00 PM) → THE PLACE (venue kept
+secondary) → RSVP → Closing. One continuous vertical scroll.
+
+## Key decisions
+
+- **Framework: Next.js** (confirmed 2026-09-29, over plain React).
+  Guest name is in the first page load, bad codes get a real 404, and
+  RSVP/admin run server-side without a separate backend.
+- Guest URLs use opaque codes (`/invite/7XK92M`). No names or PII in URLs or
+  QR codes. The code personalises the page; it is not a security measure.
+- Recipient types: individual, couple, family, group. Driven by data, not
+  separate templates.
+- Guest records stay minimal: `code`, `type`, `names`.
+- Themes are defined in code: **Soft Heritage** (default) and **Monochrome
+  Editorial**. The visitor's choice goes in localStorage. No styling values
+  in content JSON.
+- Heritage muted text colour: `#626653` (Muted Olive).
+- The KBBQ is part of THE DAY, visually below the ceremony. Never its own
+  section.
+- New guests are added with `npm run add:guest` (random unused code from an
+  alphabet without look-alike characters) and removed with
+  `npm run remove:guest -- CODE`, then `npm run generate:qrs`. Only remove
+  invitations that haven't been sent.
+- One QR code per guest, built by `npm run generate:qrs`
+  (`scripts/generate-qrs.mts`) from `guests.json`. Error correction level H,
+  SVG + PNG output, plus a print reference sheet. Output goes to `print/`
+  (git-ignored, never deployed) rather than `public/` as the handoff
+  suggested, because the sheet contains guest names. Printed QR links must
+  keep working permanently.
+- `/admin` is deferred. When built, it writes to GitHub server-side only.
+- Motion is restrained (fades, ~12–20px moves, 600–1200ms) and respects
+  reduced-motion settings.
+- Invite pages are prerendered at build time from `guests.json`; unknown
+  codes 404, lowercase codes redirect to uppercase. The whole site is
+  `noindex` and `robots.txt` blocks all crawlers.
+- The opening entrance uses CSS animation, not Motion, so the guest's name
+  is visible in the server HTML without waiting for JavaScript. Motion is
+  used for the scroll reveals below the fold.
+- RSVP is a server action. It re-checks the code and only accepts names that
+  belong to that invitation. It only reports success once the Sheet webhook
+  replies `ok`. In production without a webhook URL it refuses rather than
+  silently dropping responses.
+- Guest types: `family` needs `familyName` ("The Santos Family"), `group`
+  shows "<first name> & Friends", and any guest can set `displayName` to
+  override.
+- Editorial muted grey is `#6F6F6F`, not the spec's `#777777`, for
+  readable contrast on small text.
+- **Opening is a gate** (decided 2026-09-30): `/invite/CODE` shows only the
+  opening. Nothing else is rendered or scrollable until "Open invitation" is
+  tapped; then the content fades in on the same URL. Opening adds a history
+  entry, so Back returns to the opening. Refreshing or returning later shows
+  the opening again. Chosen over a separate `/invitation` route so the reveal
+  stays one continuous animation and nobody can skip the opening.
+- Build in vertical slices: Figma → Next.js → test, one section at a time,
+  starting with the Opening.
+- **Floral corners on every screen** (2026-09-30): fixed top-left and
+  bottom-right blossoms cropped from `background-flowers.png`, behind the
+  content, faded into the page. The mockup has text baked in, so only the
+  corners are usable; a refined, text-free version can be generated later.
+- **US stays an editorial timeline** (2026-09-30), not an Instagram feed or
+  a single swipeable post. The photos are casual phone snaps; a milestone
+  may have several, shown as a swipeable carousel. Tried the Instagram feed,
+  then reverted at Angelo's request.
+- **Photo frames fit each photo** (2026-09-30): shape read at build time,
+  clamped between 4:5 and 1.91:1 (like Instagram). JPEG or WebP at full
+  quality; not HEIC; no manual conversion since `next/image` serves WebP.
+- **Venue presentation** (2026-09-30): lead with "Old Treasury Building",
+  the room in small caps beneath, full street address, map link to the
+  building. No embedded Google Map.
+- **Venue arch reveal** (2026-09-30): the exterior photo opens through an
+  arch as the guest scrolls. Chosen over a slow zoom, a line drawing, a
+  crossfade or a drawn map. A scroll-driven venue film is built and takes
+  over when `location.video` is set, but needs footage we own or license;
+  a 3D scan and Google Maps 3D/Street View were rejected.
+- **Ceremony livestream on YouTube** (2026-10-01), unlisted, shown at the
+  end of THE DAY with the start in Melbourne and Manila time. A link until
+  two hours before, then the player embedded on the invitation. Chosen over
+  Facebook Live, Google Meet/Zoom and Discord (see handoff §21).
+
+## Current status
+
+| Area | Status |
+|---|---|
+| Concept, personalisation, story | ~90% |
+| Physical ↔ digital | ~85% |
+| Visual direction, IA, tech architecture, motion | ~80% |
+| Data architecture | ~75% |
+| UI design (Figma) | ~40% |
+| Implementation | Basic end-to-end version working (unpolished) |
+
+**Working now:** all sections (Opening → US → THE DAY → THE PLACE → RSVP →
+Closing), four sample guests (one per type), both themes with a switcher in
+the closing, RSVP with validation, QR generation and print sheet, 404 page,
+generic landing page at `/`. Also (2026-09-30 → 10-01): floral corners on
+every page, story carousels for milestones with several photos, frames that
+fit each photo's shape, the real venue (Old Treasury Building, Margaret
+Craig Room) with its exterior photo and arch reveal, a ready-to-use venue
+film, and the YouTube ceremony livestream (link now, player on the day).
+
+**Placeholders still in use:** story photos (empty frames), KBBQ name and
+address, the livestream link, venue directions,
+story text beyond the handoff examples, fonts (Cormorant + Jost),
+the monogram (plain "A & G" text), sample guests.
+
+**Next milestone:** Polish section by section alongside the Figma work,
+then connect the real Google Sheet and deploy to Vercel.
+
+## Open questions / still to decide
+
+- Confirm the venue address and get one line of directions to the
+  Margaret Craig Room (entrance, floor)
+- Rights to the Old Treasury exterior photo (looks professionally shot;
+  check its source or credit it)
+- Venue film: ask a videographer (e.g. Twenty One Studio) to license a
+  5–10 s continuous clip, or film one; ask BDM whether filming inside is
+  allowed
+- Whether to warm or mute the venue photo's vivid blue sky to suit the
+  palette
+- Whether to hide the photo block when there's no photo, and to change
+  "View map" to "Get directions"
+- Refined floral artwork (text-free, higher resolution than 949px)
+- Countdown (parked 2026-10-01): if added, a quiet days-only line under
+  the date in THE DAY ("132 days to go" → "Tomorrow" → "Today" → "Married
+  10 February 2027"), counted by Melbourne's calendar in the browser, plus
+  "Starting in 1 hr 23 min" in the livestream card on the day. Not on the
+  opening, not its own section, no seconds.
+- KBBQ restaurant name and address
+- Display, body and label fonts
+- Monogram design
+- Final US milestones: dates, titles, captions, photos
+- Dress code, parking, transport details
+- Create the unlisted YouTube stream and paste its link into
+  `onlineCeremony.url`; confirm the start time; pick who runs the camera
+- RSVP: whether meal preference and a confirmation email are needed
+- Domain registration
+- Guest list and invitation codes
+- Where the theme switcher lives (currently only in the closing)
+- Whether to show an RSVP deadline
+
+------------------------------------------------------------------------
+
+## Change log
+
+### 2026-09-29
+
+- Reviewed the handoff document.
+- Wedding date changed from 12 to 10 February 2027 (made by Angelo in the
+  handoff). Fixed the one leftover: `wedding.json` example `display` field.
+- §25: `--color-text-muted` changed from `#777777` (Monochrome grey) to
+  `#626653` (Heritage Muted Olive).
+- §42: removed duplicated QR steps and fixed numbering (now 1–28).
+- Created this context file.
+- Angelo asked whether to use React or Next.js. Recommended Next.js:
+  the guest's name is in the first page load (no blank screen or flash),
+  bad invite codes can return a proper 404, and RSVP and admin can run
+  server-side with credentials kept secret, all without a separate backend.
+  It also deploys to Vercel with no setup. Plain React would suit only a
+  fully static site with an embedded Google Form.
+- Angelo confirmed Next.js. Moved from open questions to key decisions.
+- Set up the Next.js project in `wedding-invitation/` and built a basic
+  end-to-end version of the whole handoff (details under Current status).
+- Verified: lint, typecheck and production build pass. A headless Chrome
+  test covered the full guest journey on mobile and desktop: all four guest
+  types, theme switch and persistence, RSVP yes/no/validation, a wrong
+  webhook secret, 404 and lowercase-code redirect, and reduced motion.
+  17/17 real checks passed; the webhook received the right data.
+- Fixes found during testing: the guest name was invisible until JavaScript
+  loaded (moved the opening animation to CSS); lowercase codes showed a
+  broken page (added redirect); a wrong Sheet secret would have shown the
+  guest a false "thank you" (now requires an `ok` reply).
+- Not committed to git yet.
+
+### 2026-09-30
+
+- `npm run dev` returned a 500 on every page. Cause: a Turbopack dev-mode bug
+  loading the static Cormorant Garamond italic files from Google Fonts. The
+  production build was unaffected, which is why the earlier tests (run
+  against `build` + `start`) missed it. Fixed by switching to the variable
+  `Cormorant` font (same typeface family). Dev, lint and build all pass.
+- Lesson: test `npm run dev` as well as the production build.
+- Angelo noticed guests could scroll past the opening without tapping "Open
+  invitation" (this happened on every device). Added `InvitationGate`, per
+  the decision above. Checks now cover: no scrolling before opening, content
+  at the top after opening, Back/Forward, and all the previous flows.
+  24/24 checks pass on both the dev server and the production build.
+- Added `npm run add:guest` so codes are never invented by hand; see the
+  README for the options. `generate:qrs` now clears old QR files first, so a
+  removed guest's QR can't be printed by mistake. Both scripts read
+  `.env.local` quietly. Tested every guest type plus the error cases; the
+  test guests were then removed.
+- README: added a "QR codes" section (output files, why `print/` is private,
+  testing scans on a phone before launch) and `add-guest.mts` in the file
+  table.
+- Handoff §18 updated to match the implementation: `add:guest`, `.mts`
+  scripts, output in `print/` (and why), clearing old QRs, dev-scan testing,
+  and sample data matching `guests.json`.
+- Brought the rest of the handoff up to date with what's built: stack
+  (Next 16, Tailwind v4, Motion), opening gate (§2.2, §4), CSS opening
+  entrance, RSVP → Apps Script → Sheet (§11), data file examples and guest
+  fields (§12), section settings (§17), Editorial grey (§15), and the real
+  folder structure and routing (§35). The handoff is once again the
+  single up-to-date spec; `context.md` keeps the history.
+- Added `npm run remove:guest -- CODE` (accepts lowercase, and errors on an
+  unknown or missing code). Tested add → QR → remove → QR; `guests.json`
+  ended identical to before. Documented in the README, handoff §18 and here.
+- QR output split into folders: `print/png/<CODE>.png` (one 1200×1200 PNG
+  per guest, as Angelo asked) and `print/svg/<CODE>.svg`; the old combined
+  `print/qrs/` is removed on the next run. Every PNG was decoded with macOS's
+  QR reader and resolves to the right `/invite/<CODE>` link. README and
+  handoff §18 updated.
+- Floral corners added to every page (`components/Decor/FloralCorners.tsx`),
+  cropped from `background-flowers.png` into `public/decor/`. Then refined
+  from Angelo's art-direction brief: smaller on phones so they clear the
+  heading, bleeding off the edges, with a softer shadow fade. The brief's
+  artwork changes (petal realism, leaf veins) need an image generator, not
+  code. RSVP background made slightly see-through so the flowers show.
+- US: tried an Instagram-style feed (post header, small caption), then
+  reverted to the alternating editorial layout. Kept from the experiment:
+  several photos per milestone as a carousel (`story.json` `image` →
+  `images` list).
+- Photo frames now take each photo's shape (`lib/photos.ts`, new
+  dependency `image-size`), for the story and the venue. Verified on test
+  images; EXIF rotation couldn't be tested without a real phone photo.
+- Venue set to the Old Treasury Building, Margaret Craig Room: new `room`
+  and `directions` fields, full address, shown in THE PLACE and the
+  ceremony card.
+- Built the scroll-driven venue film (`VenueFilm`, ffmpeg steps in the
+  README) and the arch reveal (`VenueArch`), which is what shows now.
+  Arch checked in headless Chrome at four scroll positions.
+- Added the Old Treasury exterior photo as
+  `public/images/old-treasury-exterior.webp` (2500×1665).
+- Typecheck and lint pass throughout. Not yet checked end to end in a
+  browser; not committed.
+
+### 2026-10-01
+
+- Moved this file and the handoff into `wedding-invitation/docs/`.
+- Documentation brought up to date: README (file table, Photos, The venue,
+  Venue film, Floral corners), handoff §7, §8, §9, §12, §15, §20, §31, §34,
+  §35, and this file.
+- Ceremony livestream: YouTube, enabled (`onlineCeremony` gained
+  `startsAt` and `timeZones`; new `liveMessage` copy). New
+  `components/WeddingDay/LiveStream.tsx` and `lib/youtube.ts`. Link parsing
+  and the time line tested in Node; the day-of switch to the player not yet
+  checked in a browser. Documented in the README, handoff §12, §21, §35.
+- Livestream made easier to find: framed "Watch from home" card (wider on
+  desktop), solid burgundy play button, "Watching from home? ↓" jump link
+  under the ceremony card, and day-of badges (Starting soon → Live now →
+  Watch the replay) with "Open in YouTube". Checked in headless Chrome at
+  phone and desktop widths, before the day and live, via a temporary
+  preview page (since removed).
+- Countdown discussed and parked (see open questions).
+- Documentation audit: handoff intro (venue), §12 content copy, §17 (online
+  ceremony isn't a section; no gallery), §23/§24 PhotoGrid → PhotoCarousel,
+  §43 maturity (implementation no longer 0%); README file table (docs/,
+  `lib/youtube.ts`, the flower mockup); this file's status and
+  placeholders.
