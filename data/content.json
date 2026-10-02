@@ -2,7 +2,11 @@
   "opening": {
     "eyebrow": "With love, for",
     "cta": "Open invitation",
-    "signature": "Designed & built by Angelo"
+    "envelopeHint": "Tap the seal to open",
+    "signature": "Designed & built by Angelo",
+    "scrollHint": "Scroll",
+    "daysToGo": "days to go",
+    "tomorrow": "Tomorrow"
   },
   "story": {
     "eyebrow": "Our story",
@@ -10,7 +14,16 @@
   },
   "day": {
     "eyebrow": "The day",
-    "title": "A day we have been waiting for."
+    "title": "A day we have been waiting for.",
+    "countdown": {
+      "label": "Countdown to the ceremony, 10 February 2027 at 2:00 PM in Melbourne.",
+      "days": "Days",
+      "hours": "Hours",
+      "minutes": "Minutes",
+      "seconds": "Seconds",
+      "today": "Today is the day",
+      "married": "Happily married"
+    }
   },
   "place": {
     "eyebrow": "The place",
@@ -45,6 +58,8 @@
   },
   "closing": {
     "message": "We can't wait to celebrate with you.",
+    "rsvpReminder": "We'd love to know if you can make it.",
+    "rsvpReminderCta": "Reply to the RSVP",
     "backToTop": "Back to top"
   }
 }

@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
+import { ChapterNav } from "@/components/Invitation/ChapterNav";
 import { Closing } from "@/components/Invitation/Closing";
 import { InvitationGate } from "@/components/Invitation/InvitationGate";
 import { Opening } from "@/components/Invitation/Opening";
+import { ScrollHint } from "@/components/Invitation/ScrollHint";
 import { VenueCard } from "@/components/Place/VenueCard";
 import { RSVP } from "@/components/RSVP/RSVP";
 import { Timeline } from "@/components/Story/Timeline";
@@ -35,11 +37,30 @@ export default async function InvitePage({ params }: PageProps<"/invite/[code]">
             city={wedding.location.city}
             eyebrow={content.opening.eyebrow}
             cta={content.opening.cta}
+            envelopeHint={content.opening.envelopeHint}
             signature={content.opening.signature}
             guestName={displayName}
+            countdown={{
+              startsAt: wedding.date.startsAt,
+              timeZone: wedding.date.timeZone,
+              copy: content.day.countdown,
+              daysToGo: content.opening.daysToGo,
+              tomorrow: content.opening.tomorrow,
+            }}
           />
         }
       >
+        <ScrollHint label={content.opening.scrollHint} />
+        <ChapterNav
+          chapters={[
+            { id: "story", label: content.story.eyebrow, on: sections.story },
+            { id: "day", label: content.day.eyebrow, on: sections.day },
+            { id: "place", label: content.place.eyebrow, on: sections.place },
+            { id: "rsvp", label: content.rsvp.eyebrow, on: sections.rsvp },
+          ]
+            .filter((chapter) => chapter.on)
+            .map(({ id, label }) => ({ id, label }))}
+        />
         {sections.story && <Timeline entries={story} copy={content.story} />}
         {sections.day && (
           <Schedule wedding={wedding} events={events} copy={content.day} onlineCopy={content.onlineCeremony} />
@@ -48,7 +69,12 @@ export default async function InvitePage({ params }: PageProps<"/invite/[code]">
         {sections.rsvp && (
           <RSVP code={guest.code} greeting={displayName} names={guest.names} copy={content.rsvp} />
         )}
-        <Closing wedding={wedding} copy={content.closing} signature={content.opening.signature} />
+        <Closing
+          wedding={wedding}
+          copy={content.closing}
+          signature={content.opening.signature}
+          rsvpCode={sections.rsvp ? guest.code : undefined}
+        />
       </InvitationGate>
     </main>
   );

@@ -12,7 +12,14 @@ export type Wedding = {
     displayName: string;
     monogram: string;
   };
-  date: { display: string; iso: string };
+  date: {
+    display: string;
+    iso: string;
+    /** Ceremony start with its UTC offset; the countdown counts to this. */
+    startsAt: string;
+    /** The zone the wedding day belongs to ("Today" in the countdown). */
+    timeZone: string;
+  };
   location: {
     city: string;
     region: string;

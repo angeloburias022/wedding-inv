@@ -1,5 +1,8 @@
 import type { CSSProperties } from "react";
-import { OpenInvitationButton } from "./InvitationGate";
+import { Countdown } from "@/components/WeddingDay/Countdown";
+import { DaysToGo } from "@/components/WeddingDay/DaysToGo";
+import type { Content } from "@/lib/wedding";
+import { Envelope } from "./Envelope";
 
 type OpeningProps = {
   monogram: string;
@@ -8,11 +11,21 @@ type OpeningProps = {
   city: string;
   eyebrow: string;
   cta: string;
+  /** Under the envelope, e.g. "Tap the seal to open". */
+  envelopeHint: string;
   signature: string;
   /** Omitted on the generic (non-personalised) landing page. */
   guestName?: string;
   /** Shown instead of the greeting and CTA when there is no guest. */
   fallbackNote?: string;
+  /** Guests get a quiet "131 days to go" line; the generic landing gets the full clock. */
+  countdown: {
+    startsAt: string;
+    timeZone: string;
+    copy: Content["day"]["countdown"];
+    daysToGo: string;
+    tomorrow: string;
+  };
 };
 
 function rise(delayMs: number, risePx = 0, durationMs?: number): CSSProperties {
@@ -31,9 +44,11 @@ export function Opening({
   city,
   eyebrow,
   cta,
+  envelopeHint,
   signature,
   guestName,
   fallbackNote,
+  countdown,
 }: OpeningProps) {
   return (
     <header className="relative flex min-h-svh flex-col items-center justify-between px-6 py-12 text-center md:py-16">
@@ -41,7 +56,10 @@ export function Opening({
         <p className="font-display text-xl tracking-[0.3em] text-detail" aria-hidden>
           {monogram}
         </p>
-        <p className="label text-ink">{coupleName}</p>
+        {/* Second in the hierarchy (handoff §4): well above the labels, well below the guest's name. */}
+        <p className="font-display text-2xl leading-tight tracking-[0.14em] text-ink uppercase md:text-3xl">
+          {coupleName}
+        </p>
         <p className="label text-muted">
           {date}
           <span className="mx-2" aria-hidden>
@@ -49,31 +67,41 @@ export function Opening({
           </span>
           {city}
         </p>
+        {guestName && (
+          <DaysToGo
+            startsAt={countdown.startsAt}
+            timeZone={countdown.timeZone}
+            copy={{ ...countdown.copy, daysToGo: countdown.daysToGo, tomorrow: countdown.tomorrow }}
+            className="label -mt-3 text-detail"
+          />
+        )}
       </div>
 
       {guestName ? (
-        <div className="flex max-w-[900px] flex-col items-center gap-5">
-          <p className="label animate-rise text-muted" style={rise(200)}>
-            {eyebrow}
-          </p>
-          <h1
-            className="animate-rise font-display text-5xl leading-none font-normal tracking-[-0.02em] text-balance uppercase md:text-7xl"
-            style={rise(300, 12, 600)}
-          >
-            {guestName}
-          </h1>
+        <div className="animate-rise" style={rise(300, 12, 800)}>
+          <Envelope
+            guestName={guestName}
+            eyebrow={eyebrow}
+            cta={cta}
+            hint={envelopeHint}
+            monogram={monogram}
+            coupleName={coupleName}
+            date={date}
+          />
         </div>
       ) : (
         <div className="flex max-w-md animate-rise flex-col items-center gap-6" style={rise(200, 12)}>
           <h1 className="font-display text-5xl leading-none font-normal tracking-[-0.02em] uppercase md:text-7xl">
             {coupleName}
           </h1>
+          <div className="py-4">
+            <Countdown startsAt={countdown.startsAt} timeZone={countdown.timeZone} copy={countdown.copy} />
+          </div>
           {fallbackNote && <p className="font-display text-xl text-muted italic">{fallbackNote}</p>}
         </div>
       )}
 
       <div className="flex animate-rise flex-col items-center gap-8" style={rise(900)}>
-        {guestName && <OpenInvitationButton label={cta} />}
         <p className="text-[0.7rem] tracking-wide text-muted">{signature}</p>
       </div>
     </header>

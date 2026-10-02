@@ -1,14 +1,62 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
-const OpenInvitationContext = createContext<() => void>(() => {});
+type OpenOptions = {
+  /** The opening has already covered the screen (the envelope's card): swap instantly, no fades. */
+  seamless?: boolean;
+};
+
+const OpenInvitationContext = createContext<(options?: OpenOptions) => void>(() => {});
 
 const HISTORY_KEY = "invitationOpen";
+const SCROLL_KEY = "invitationScroll";
 
 function isOpenEntry() {
   return window.history.state?.[HISTORY_KEY] === true;
+}
+
+// The "open" flag lives on the history entry, so it survives a reload of that
+// entry (but not a fresh visit). Components read it through this tiny store.
+const listeners = new Set<() => void>();
+function subscribe(onChange: () => void) {
+  listeners.add(onChange);
+  window.addEventListener("popstate", onChange);
+  return () => {
+    listeners.delete(onChange);
+    window.removeEventListener("popstate", onChange);
+  };
+}
+const getServerSnapshot = () => false;
+
+/**
+ * Set by a tap on "Open invitation": play the transitions and start at the top.
+ * When the invitation opens without a tap (a reload, or browser Forward), it
+ * appears instantly at the guest's last scroll position instead.
+ */
+let openedByTap = false;
+let seamlessOpen = false;
+
+if (typeof window !== "undefined") {
+  // We restore the scroll ourselves once the content is rendered.
+  window.history.scrollRestoration = "manual";
+}
+
+function readSavedScroll() {
+  try {
+    return Number(sessionStorage.getItem(`${SCROLL_KEY}:${location.pathname}`)) || 0;
+  } catch {
+    return 0;
+  }
+}
+
+function saveScroll() {
+  try {
+    sessionStorage.setItem(`${SCROLL_KEY}:${location.pathname}`, String(Math.round(window.scrollY)));
+  } catch {
+    // Storage can be unavailable (private mode); a reload then starts at the top.
+  }
 }
 
 type InvitationGateProps = {
@@ -19,50 +67,40 @@ type InvitationGateProps = {
 /**
  * Shows only the opening until the guest taps "Open invitation" (handoff §2.2).
  * Opening adds a history entry on the same URL, so the browser Back button
- * returns to the opening instead of leaving the site.
+ * returns to the opening instead of leaving the site. Reloading an opened
+ * invitation stays on it, at the same scroll position.
  */
 export function InvitationGate({ opening, children }: InvitationGateProps) {
-  const [open, setOpen] = useState(false);
-  const contentRef = useRef<HTMLDivElement>(null);
+  const open = useSyncExternalStore(subscribe, isOpenEntry, getServerSnapshot);
 
-  useEffect(() => {
-    const sync = () => setOpen(isOpenEntry());
-    window.addEventListener("popstate", sync);
-    return () => window.removeEventListener("popstate", sync);
-  }, []);
-
-  const openInvitation = useCallback(() => {
-    // After a refresh we may already be on the "open" entry; don't stack another.
+  const openInvitation = (options?: OpenOptions) => {
     if (!isOpenEntry()) {
       window.history.pushState({ ...window.history.state, [HISTORY_KEY]: true }, "");
     }
-    setOpen(true);
-  }, []);
+    openedByTap = true;
+    seamlessOpen = Boolean(options?.seamless);
+    listeners.forEach((notify) => notify());
+  };
 
   return (
-    <AnimatePresence mode="wait" initial={false}>
+    // `custom` reaches the exiting opening too, so it knows whether to animate out.
+    <AnimatePresence mode="wait" initial={false} custom={openedByTap && !seamlessOpen}>
       {open ? (
         <motion.div
           key="invitation"
-          ref={contentRef}
-          tabIndex={-1}
-          aria-label="Invitation"
-          className="outline-none"
-          initial={{ opacity: 0 }}
+          initial={openedByTap && !seamlessOpen ? { opacity: 0 } : false}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          onAnimationStart={() => {
-            window.scrollTo(0, 0);
-            contentRef.current?.focus({ preventScroll: true });
-          }}
         >
-          {children}
+          <OpenedContent>{children}</OpenedContent>
         </motion.div>
       ) : (
         <motion.div
           key="opening"
-          exit={{ opacity: 0, y: -12 }}
-          transition={{ duration: 0.6, ease: "easeIn" }}
+          variants={{
+            exit: (tapped: boolean) => ({ opacity: 0, y: -12, transition: { duration: tapped ? 0.6 : 0, ease: "easeIn" } }),
+          }}
+          exit="exit"
         >
           <OpenInvitationContext.Provider value={openInvitation}>{opening}</OpenInvitationContext.Provider>
         </motion.div>
@@ -71,16 +109,61 @@ export function InvitationGate({ opening, children }: InvitationGateProps) {
   );
 }
 
-export function OpenInvitationButton({ label }: { label: string }) {
-  const openInvitation = useContext(OpenInvitationContext);
+/** Positions the page when the content appears, then keeps track of the scroll for a reload. */
+function OpenedContent({ children }: { children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  // Read once per mount: dev-mode effects run twice and must agree on how we got here.
+  const [byTap] = useState(() => openedByTap);
+
+  useEffect(() => {
+    openedByTap = false;
+    seamlessOpen = false;
+    if (byTap) {
+      window.scrollTo({ top: 0, behavior: "instant" });
+      ref.current?.focus({ preventScroll: true });
+    } else {
+      window.scrollTo({ top: readSavedScroll(), behavior: "instant" });
+    }
+
+    let frame = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(saveScroll);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("pagehide", saveScroll);
+
+    // In-page links (#rsvp, #top, chapter dots…) would add a history entry without
+    // the open flag and close the invitation; scroll to the section instead.
+    const onClick = (event: MouseEvent) => {
+      const link = (event.target as Element | null)?.closest?.<HTMLAnchorElement>('a[href^="#"]');
+      if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey) return;
+      const id = decodeURIComponent(link.hash.slice(1));
+      const target = id === "top" ? null : document.getElementById(id);
+      if (id !== "top" && !target) return;
+      event.preventDefault();
+      const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth";
+      if (target) target.scrollIntoView({ behavior, block: "start" });
+      else window.scrollTo({ top: 0, behavior });
+    };
+    document.addEventListener("click", onClick);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("pagehide", saveScroll);
+      document.removeEventListener("click", onClick);
+    };
+  }, [byTap]);
 
   return (
-    <button
-      type="button"
-      onClick={openInvitation}
-      className="label min-h-11 border-b border-line pb-1 text-ink transition-colors hover:border-accent hover:text-accent"
-    >
-      {label}
-    </button>
+    <div ref={ref} tabIndex={-1} aria-label="Invitation" className="outline-none">
+      {children}
+    </div>
   );
+}
+
+/** Opens the invitation from inside the opening (the envelope's seal). */
+export function useOpenInvitation() {
+  return useContext(OpenInvitationContext);
 }

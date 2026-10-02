@@ -12,8 +12,16 @@ export default function Home() {
         city={wedding.location.city}
         eyebrow={content.opening.eyebrow}
         cta={content.opening.cta}
+        envelopeHint={content.opening.envelopeHint}
         signature={content.opening.signature}
         fallbackNote="Please scan the QR code on your invitation, or open the link we sent you."
+        countdown={{
+          startsAt: wedding.date.startsAt,
+          timeZone: wedding.date.timeZone,
+          copy: content.day.countdown,
+          daysToGo: content.opening.daysToGo,
+          tomorrow: content.opening.tomorrow,
+        }}
       />
     </main>
   );

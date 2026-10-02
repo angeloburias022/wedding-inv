@@ -1,10 +1,11 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { submitRsvp, type RsvpState } from "@/app/actions/rsvp";
 import { SectionHeader } from "@/components/Invitation/SectionHeader";
 import { Reveal } from "@/components/Motion/Reveal";
 import type { Content } from "@/lib/wedding";
+import { markReplied } from "./replied";
 
 type RSVPProps = {
   code: string;
@@ -29,6 +30,11 @@ export function RSVP({ code, greeting, names, copy }: RSVPProps) {
   const plural = names.length > 1;
 
   const submitted = state.status === "success" && !editing;
+
+  // Lets the closing's reminder know this guest has answered.
+  useEffect(() => {
+    if (state.status === "success") markReplied(code);
+  }, [state, code]);
 
   return (
     <section id="rsvp" aria-labelledby="rsvp-title" className="bg-surface/80 px-6 py-24 md:py-32">

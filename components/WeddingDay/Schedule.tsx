@@ -1,6 +1,7 @@
 import { SectionHeader } from "@/components/Invitation/SectionHeader";
 import { Reveal } from "@/components/Motion/Reveal";
 import type { Content, Events, Wedding } from "@/lib/wedding";
+import { Countdown } from "./Countdown";
 import { EventCard } from "./EventCard";
 import { LiveStream } from "./LiveStream";
 
@@ -41,6 +42,10 @@ export function Schedule({ wedding, events, copy, onlineCopy }: ScheduleProps) {
         <Reveal y={12} className="flex flex-col items-center gap-2 text-center">
           <p className="label text-ink">{wedding.date.display}</p>
           <p className="label text-muted">{wedding.location.city}</p>
+        </Reveal>
+
+        <Reveal y={12}>
+          <Countdown startsAt={wedding.date.startsAt} timeZone={wedding.date.timeZone} copy={copy.countdown} />
         </Reveal>
 
         <Reveal className="flex flex-col items-center gap-6">

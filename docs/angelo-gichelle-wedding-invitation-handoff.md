@@ -110,17 +110,28 @@ action may be provided where useful.
 
 ### The opening is a gate
 
-`/invite/CODE` shows only the opening. Nothing else is rendered or
-scrollable until the guest taps **OPEN INVITATION**. The content then fades
-in on the same URL, starting at the top, like opening a card.
+`/invite/CODE` shows only the opening: a sealed envelope addressed to the
+guest (§4). Nothing else is rendered or scrollable until the guest taps the
+**wax seal**. The envelope opens, the card slides out and becomes the
+screen, and the invitation is revealed on the same URL, starting at the top
+(§20).
 
 -   Opening adds a browser history entry, so **Back** returns to the
-    opening instead of leaving the site, and **Forward** re-opens it.
--   Refreshing or returning later shows the opening again.
+    opening instead of leaving the site, and **Forward** re-opens it at
+    the guest's last scroll position.
+-   **Reloading** an opened invitation stays on it, instantly, at the same
+    scroll position (changed 2026-10-01; it used to return to the
+    opening). The open flag lives on the history entry and the scroll
+    position in `sessionStorage`.
+-   A **fresh visit** (new tab, QR scan, link opened later) shows the
+    opening again, so the moment isn't lost.
 -   A separate route (e.g. `/invite/CODE/invitation`) was considered and
     rejected: it breaks the reveal into a page change and lets people skip
     the opening via a direct link.
 -   Trade-off: without JavaScript the invitation cannot be opened.
+-   In-page links scroll to their section instead of changing the URL
+    hash: a hash change would add a history entry without the open flag
+    and close the invitation (bug found and fixed 2026-10-01).
 
 Guiding principle:
 
@@ -201,32 +212,63 @@ Do not use URLs such as:
 
 The first screen is the most important UX moment.
 
-Recommended composition:
+Composition (as built 2026-10-01, the guest's opening is a sealed
+envelope addressed to them):
 
 ``` text
                          A & G
 
                   ANGELO & GICHELLE
 
-                   10 FEBRUARY 2027
-                       MELBOURNE
+             10 FEBRUARY 2027 · MELBOURNE
+                   131 DAYS TO GO
 
+          ┌──────────────────────────────────┐
+          │ ╲                              ╱ │
+          │    ╲                        ╱    │
+          │       ╲      ( A&G )     ╱       │   ← wax seal = the way in
+          │          WITH LOVE, FOR          │
+          │          RHEA & ERWIN            │
+          └──────────────────────────────────┘
 
-                     WITH LOVE, FOR
-
-                     RHEA & ERWIN
-
-
-                  OPEN INVITATION
+                 TAP THE SEAL TO OPEN
 
               Designed & built by Angelo
 ```
+
+The envelope mirrors the printed 5×7 card's envelope ("one invitation,
+two mediums"). It is drawn in code from the theme tokens, so it follows
+the theme: Heritage gives ivory paper and a Deep Burgundy seal; Editorial
+gives white paper and a near-black seal. Faint paper grain, soft shadow,
+fold lines, and a seal with an uneven wax edge and embossed monogram.
+
+-   The seal invites touch without words: after 3s untouched it glows
+    softly every few seconds (light catching wax); it presses down under
+    the finger, and gives a light vibration on Android.
+-   **One tap**: the seal replaces the "Open invitation" button. Tapping
+    the seal (or the hint under the envelope) lifts the seal, folds the
+    flap back, slides out the card (monogram, couple names, date), then
+    opens the invitation (§20). No extra step.
+-   The guest's name is real text on the envelope (an `h1`), in the
+    first server-rendered HTML, sized to the envelope so long names
+    ("The Santos Family") fit.
+-   Under the date, a quiet days line (added 2026-10-02) in small brass
+    caps: "131 days to go" → "Tomorrow" → "Today is the day" → "Happily
+    married". Calendar days in Melbourne time; it doesn't tick, so it never
+    pulls attention from the seal. The full ticking clock lives in THE DAY
+    (§8).
+-   The generic landing page (no guest) keeps the plain composition
+    without an envelope, with the full countdown clock under the couple's
+    names.
+-   A finished envelope design from Figma (or matching the printed one)
+    can replace the drawn version later; the flow stays the same.
 
 ## Visual hierarchy
 
 ### 1. Guest name
 
-The guest/couple name is the emotional focal point.
+The guest/couple name is the emotional focal point (on the envelope, the
+largest text on screen).
 
 Use an elegant serif and make it visually prominent.
 
@@ -255,7 +297,10 @@ JavaScript.
 ANGELO & GICHELLE
 ```
 
-Smaller than the guest name.
+Smaller than the guest name, but clearly larger than the labels around
+it. As built (2026-10-01): the display serif in spaced capitals,
+24px on mobile and 30px on desktop (the guest name is 48px / 72px; labels
+are 12px). The closing uses the same size.
 
 ### 3. Monogram
 
@@ -278,10 +323,12 @@ Use a restrained sans-serif.
 ### 5. CTA
 
 ``` text
-OPEN INVITATION
+TAP THE SEAL TO OPEN
 ```
 
-Minimal, elegant, not a giant app-style button.
+The wax seal itself is the button (accessible name "Open invitation"),
+with this small hint beneath. Minimal, elegant, not a giant app-style
+button.
 
 It is the only way into the rest of the invitation (see §2.2).
 
@@ -519,6 +566,24 @@ DINNER & CELEBRATION
 Come celebrate, eat, and stay awhile.
 ```
 
+Countdown (added 2026-10-02): under the date and city, a clock counting
+to the ceremony start (`date.startsAt`):
+
+``` text
+131  ·  10  ·  43  ·  34
+DAYS   HOURS  MINUTES SECONDS
+```
+
+Display serif with lining, fixed-width numerals and small-caps labels.
+It counts against the absolute start time, so guests in Manila and
+Melbourne see the same numbers. On the wedding day (Melbourne date) "Today
+is the day" appears above the clock, which keeps ticking down to 2:00 PM;
+once the ceremony starts the message stays on its own for the rest of the
+day, then "Happily married". Seconds and keeping the clock visible on the
+day were explicitly requested. The envelope screen gets only a quiet,
+non-ticking "131 days to go" line (§4); the generic landing page shows
+this full clock. Not sticky, not in the closing.
+
 The narrative is:
 
 > We get married → we celebrate → we eat together.
@@ -675,6 +740,12 @@ SEND RSVP
 Because guest identity is already known through the invitation code, the
 RSVP should feel personalized rather than like a generic form.
 
+RSVP reminder (added 2026-10-01): a guest who reaches the closing without
+having replied sees a soft line, *"We'd love to know if you can make
+it."*, with a link back to the RSVP. Once they reply it disappears for
+good. The reply is remembered in the browser (`localStorage`, per guest
+code, per device): a courtesy only, since the Sheet is the record.
+
 ------------------------------------------------------------------------
 
 # 11. RSVP Storage
@@ -754,7 +825,9 @@ Example:
   },
   "date": {
     "display": "10 February 2027",
-    "iso": "2027-02-10"
+    "iso": "2027-02-10",
+    "startsAt": "2027-02-10T14:00:00+11:00",
+    "timeZone": "Australia/Melbourne"
   },
   "location": {
     "city": "Melbourne",
@@ -907,7 +980,10 @@ hidden.
 
 Editorial copy should be separate from component code. Copy is written in
 sentence case; the uppercase look comes from CSS. The real file also holds the
-RSVP labels and thank-you messages, the online-ceremony copy (eyebrow,
+RSVP labels and thank-you messages, the envelope hint and scroll hint
+(`opening.envelopeHint`, `opening.scrollHint`), the closing's RSVP
+reminder (`closing.rsvpReminder`, `closing.rsvpReminderCta`), the
+online-ceremony copy (eyebrow,
 jump link, messages before and after the link exists, button, and the
 "Starting soon" / "Live now" / "Watch the replay" / "Open in YouTube"
 labels; see §21) and the closing's "Back to top" label.
@@ -1491,9 +1567,9 @@ RSVP
 Digital:
 
 ``` text
-Open
+Open (tap the envelope's wax seal)
 ↓
-Reveal
+Reveal (the card slides out and becomes the screen)
 ↓
 Scroll
 ↓
@@ -1504,7 +1580,8 @@ Details
 RSVP
 ```
 
-This creates the same rhythm in two mediums.
+This creates the same rhythm in two mediums. The digital opening is
+literally an envelope (§4), mirroring the printed card's envelope.
 
 Core philosophy:
 
@@ -1543,6 +1620,31 @@ Suggested values:
     scrolling, pinned mid-screen, eased so seeking feels continuous.
 -   Reduced motion: the arch shows finished and still; the film is
     replaced by the photo.
+-   Envelope opening (one tap on the seal), one continuous shot of about
+    4s: seal lifts (scale up then away, 0.5s) → flap folds back from its
+    top edge (3D rotate, 0.8s, passing behind the card halfway) → card
+    slides up out of the envelope (0.9s) → **the card becomes the screen**:
+    it grows to fill the viewport (0.9s) while its writing fades and its
+    paper turns into the page colour → the invitation swaps in beneath with
+    no fade → the sheet dissolves (0.7s) as "Our story / Us" rises in. No
+    extra title sequence, letterboxing or music after the envelope
+    (decided 2026-10-01). Reduced motion: straight to the invitation.
+    Reload, Back/Forward follow §2.2.
+-   Chapter dots: a slim column of dots on the right edge (Story, The
+    Day, The Place, RSVP; only enabled sections). They fade in once the
+    guest scrolls past 200px; the current chapter's dot fills in brass;
+    tapping one scrolls there. Labels show on hover (desktop) and to
+    screen readers.
+-   In-page links (#rsvp, #top, the dots, the livestream jump link) scroll
+    to their section without adding a history entry, so they never close
+    the invitation (§2.2).
+-   Scroll hint (after "Open invitation"): a small "Scroll" label over a
+    fine line with a brass segment travelling down it (2.2s loop), on a
+    soft ivory pill fixed at the bottom centre. Fades in 1.2s after the
+    content, fades out on the first scroll and never returns; tapping it
+    scrolls down most of a screen. No auto-scrolling: guests stay in
+    control of the pace (decided 2026-10-01). Reduced motion: the line is
+    shown still.
 
 Avoid:
 
@@ -2075,6 +2177,10 @@ Conceptual structure:
 components/
 ├── Invitation/
 │   ├── Opening/
+│   ├── Envelope/
+│   ├── InvitationGate/
+│   ├── ScrollHint/
+│   ├── ChapterNav/
 │   ├── SectionHeader/
 │   └── Closing/
 │
@@ -2085,7 +2191,8 @@ components/
 │
 ├── WeddingDay/
 │   ├── EventCard/
-│   └── Schedule/
+│   ├── Schedule/
+│   └── LiveStream/
 │
 ├── Place/
 │   ├── VenueCard/
@@ -2098,7 +2205,8 @@ components/
 ├── RSVP/
 │   ├── Attendance/
 │   ├── GuestSelection/
-│   └── DietaryRequirements/
+│   ├── DietaryRequirements/
+│   └── RsvpReminder/
 │
 └── Theme/
 ```
@@ -2127,13 +2235,14 @@ wedding-invitation/
 │           └── page.tsx      one prerendered page per guest
 │
 ├── components/
-│   ├── Invitation/           Opening, InvitationGate, SectionHeader,
+│   ├── Invitation/           Opening, Envelope, InvitationGate,
+│   │                         ScrollHint, ChapterNav, SectionHeader,
 │   │                         Photo, Closing
 │   ├── Story/                Timeline, TimelineEntry, PhotoCarousel
 │   ├── WeddingDay/           Schedule, EventCard, LiveStream
 │   ├── Place/                VenueCard, VenueArch, VenueFilm
 │   ├── Decor/                FloralCorners
-│   ├── RSVP/                 RSVP
+│   ├── RSVP/                 RSVP, RsvpReminder, replied (reply memory)
 │   ├── Motion/               MotionProvider, Reveal
 │   └── Theme/                theme, ThemeSwitcher
 │

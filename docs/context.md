@@ -83,10 +83,12 @@ secondary) → RSVP → Closing. One continuous vertical scroll.
 - Editorial muted grey is `#6F6F6F`, not the spec's `#777777`, for
   readable contrast on small text.
 - **Opening is a gate** (decided 2026-09-30): `/invite/CODE` shows only the
-  opening. Nothing else is rendered or scrollable until "Open invitation" is
-  tapped; then the content fades in on the same URL. Opening adds a history
-  entry, so Back returns to the opening. Refreshing or returning later shows
-  the opening again. Chosen over a separate `/invitation` route so the reveal
+  opening. Nothing else is rendered or scrollable until the guest opens it
+  (since 2026-10-01: taps the envelope's wax seal); then the invitation is
+  revealed on the same URL. Opening adds a history
+  entry, so Back returns to the opening. Reloading an opened invitation
+  stays on it at the same scroll position (changed 2026-10-01); a fresh
+  visit shows the opening again. Chosen over a separate `/invitation` route so the reveal
   stays one continuous animation and nobody can skip the opening.
 - Build in vertical slices: Figma → Next.js → test, one section at a time,
   starting with the Opening.
@@ -109,6 +111,31 @@ secondary) → RSVP → Closing. One continuous vertical scroll.
   crossfade or a drawn map. A scroll-driven venue film is built and takes
   over when `location.video` is set, but needs footage we own or license;
   a 3D scan and Google Maps 3D/Street View were rejected.
+- **Envelope opening** (2026-10-01): the guest's opening screen is a sealed
+  envelope addressed to them; one tap on the wax seal opens it (flap folds
+  back, card slides out) into the invitation. Drawn in code from the theme
+  tokens so it follows Heritage/Editorial; a Figma envelope matching the
+  printed one can replace it later. The seal replaces the "Open
+  invitation" button rather than adding a step.
+- **Cinematic landing = one continuous shot** (2026-10-01): the card that
+  slides out grows to fill the screen and dissolves into the story, rather
+  than adding a second scene (title sequence, letterboxing, music) after
+  the envelope.
+- **Interactive guidance** (2026-10-01): the seal glows when idle and
+  presses down on tap (vibration on Android), chapter dots show progress
+  and jump between sections, and the closing reminds guests to RSVP until
+  they have. Swipe-to-open and end-of-section "next" cues were offered and
+  left for later; tooltip walkthroughs and tilt effects were rejected.
+- **Countdown clock** (2026-10-02): days · hours · minutes · seconds under
+  the date in THE DAY, counting to the ceremony start (`date.startsAt`).
+  Seconds at Angelo's request (earlier advice was days only). The envelope
+  screen gets a quiet, non-ticking "131 days to go" line under the date
+  instead of the clock; the generic landing page shows the full clock.
+  Not sticky.
+- **No auto-scroll after opening** (2026-10-01): it takes control from
+  guests, rushes past the story and RSVP, and hurts accessibility. Instead
+  a gentle "Scroll" hint shows until the first scroll. A sticky RSVP
+  shortcut and a one-time nudge were offered as later options.
 - **Ceremony livestream on YouTube** (2026-10-01), unlisted, shown at the
   end of THE DAY with the start in Melbourne and Manila time. A link until
   two hours before, then the player embedded on the invitation. Chosen over
@@ -133,6 +160,10 @@ every page, story carousels for milestones with several photos, frames that
 fit each photo's shape, the real venue (Old Treasury Building, Margaret
 Craig Room) with its exterior photo and arch reveal, a ready-to-use venue
 film, and the YouTube ceremony livestream (link now, player on the day).
+Since 2026-10-01: the envelope opening (wax seal → flap → card that
+becomes the screen), larger couple names, reload keeping the guest's place,
+a "Scroll" hint, chapter dots, the RSVP reminder in the closing, and a more
+visible livestream card.
 
 **Placeholders still in use:** story photos (empty frames), KBBQ name and
 address, the livestream link, venue directions,
@@ -156,11 +187,12 @@ then connect the real Google Sheet and deploy to Vercel.
 - Whether to hide the photo block when there's no photo, and to change
   "View map" to "Get directions"
 - Refined floral artwork (text-free, higher resolution than 949px)
-- Countdown (parked 2026-10-01): if added, a quiet days-only line under
-  the date in THE DAY ("132 days to go" → "Tomorrow" → "Today" → "Married
-  10 February 2027"), counted by Melbourne's calendar in the browser, plus
-  "Starting in 1 hr 23 min" in the livestream card on the day. Not on the
-  opening, not its own section, no seconds.
+- Envelope artwork: optionally replace the code-drawn envelope with a
+  Figma design matching the printed envelope (the flow stays the same)
+- Guidance options left for later: swipe up to open the envelope, and
+  small "next section" cues at the end of each section
+- Countdown in the livestream card on the day ("Starting in 1 hr 23 min"),
+  still an option; the main countdown is built (2026-10-02)
 - KBBQ restaurant name and address
 - Display, body and label fonts
 - Monogram design
@@ -292,3 +324,75 @@ then connect the real Google Sheet and deploy to Vercel.
   §43 maturity (implementation no longer 0%); README file table (docs/,
   `lib/youtube.ts`, the flower mockup); this file's status and
   placeholders.
+- Couple's names made more visible on the opening and closing: from the
+  12px sans label to the display serif in spaced capitals (24px mobile,
+  30px desktop), still well below the guest's name. Checked in headless
+  Chrome at phone and desktop widths. Handoff §4 updated.
+- Scroll hint added after opening (`components/Invitation/ScrollHint.tsx`,
+  `animate-scroll-cue` in `globals.css`, `opening.scrollHint` copy). Its
+  fade-in uses the CSS entrance like the opening. Headless Chrome showed it
+  in place at the bottom centre once but was unreliable with the fade-ins,
+  so it still needs a look in a real browser. Handoff §20 and README
+  updated.
+- Reload no longer sends guests back to the opening: the gate reads the
+  open flag from the history entry (survives a reload, not a new tab) and
+  restores the scroll position from `sessionStorage`, instantly with no
+  transition. Forward also returns to the last position; a tap on "Open
+  invitation" still animates and starts at the top. Tested by driving
+  Chrome over its DevTools protocol: first visit, tap, scroll, reload ×2,
+  Back, Forward, Back + tap again, and a new tab. All behaved as intended.
+- Envelope opening built (`components/Invitation/Envelope.tsx`, `paper`
+  grain utility, `opening.envelopeHint` copy; `OpenInvitationButton`
+  replaced by a `useOpenInvitation` hook). The guest's name sits in its own
+  band under the seal, sized to the envelope, so all guest types fit on one
+  line at 390px. Checked by driving Chrome: closed envelope at 390×844 and
+  1280×800, all four guest types, Editorial, the opening sequence frame by
+  frame, the full reload/Back/Forward/new-tab run, and reduced motion.
+  Handoff §4, §20, §34, §35 and README updated.
+- "The card becomes the screen": after sliding out, a copy of the card is
+  lifted onto the page, grows to fill the viewport and fades into the page
+  colour, the invitation swaps in beneath without a fade (new `seamless`
+  option on the gate's open), and the sheet dissolves into the story.
+  Frames captured at 390×844 confirm the continuous transition; the
+  navigation run (reload, Back, Forward, new tab) and reduced motion still
+  pass. Handoff §20 updated.
+- Interactive guidance built: seal idle glow (`animate-seal-glow`), press
+  and haptic tick, `ChapterNav`, and `RsvpReminder` with a per-device
+  "replied" memory set when the RSVP succeeds. While testing, found that
+  any in-page link (#top, #rsvp, the livestream jump) closed the
+  invitation: a hash change adds a history entry without the open flag.
+  Fixed in the gate: in-page links now scroll without touching history.
+  Driven in Chrome at 390×844: glow appears after ~3s, dots hidden until
+  scrolling then track the section, tapping the RSVP dot scrolls there,
+  reminder shows before a reply and is gone after replying (also after a
+  reload), and "Back to top" keeps the invitation open. Handoff §2.2, §4,
+  §10, §20 and README updated.
+- Documentation audit: handoff §2.2 (opening via the wax seal), §12
+  (new copy keys), §19 (digital flow mentions the envelope), §34/§35
+  (ScrollHint, ChapterNav, LiveStream, RsvpReminder); this file's opening
+  decision, "Working now" and open questions. README paths all verified.
+
+### 2026-10-02
+
+- Countdown clock built (`components/WeddingDay/Countdown.tsx`): new
+  `date.startsAt` and `date.timeZone` in `wedding.json`, labels and end
+  states in `content.day.countdown`. Server renders dashes in the same
+  layout (pages are prerendered) and the browser ticks once a second.
+  Tested in Chrome at 390×844: ticking live, and with a faked clock: the
+  hour before the ceremony (00 · 00 · 59 · 44), "Today is the day" after
+  2:00 PM, "Happily married" two days later. Lining numerals so digits sit
+  level. Handoff §8 and §12, README updated.
+- Countdown refined at Angelo's request: the clock stays visible on the
+  wedding day, with "Today is the day" above it, counting down to 2:00 PM;
+  after the ceremony starts, the message alone, then "Happily married" from
+  the next day. (A version showing only "Today" from midnight was tried
+  briefly and dropped.) Tested with a faked clock: today, 11 PM the night
+  before, 8 AM and 1:59 PM on the day, 3 PM on the day, and the next day.
+- First-page countdown: `DaysToGo` line under the date on the envelope
+  screen ("131 days to go" → "Tomorrow" → "Today is the day" → "Happily
+  married", calendar days in Melbourne time, no ticking), and the full
+  `Countdown` on the generic landing page. Shared date helpers in
+  `lib/days.ts`. Checked at 390×844 and iPhone SE size 375×667 (envelope,
+  hint and signature all still on screen) and each state with a faked
+  clock. Handoff §4 and §8, README updated.
+
