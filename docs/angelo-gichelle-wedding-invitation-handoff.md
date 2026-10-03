@@ -216,7 +216,7 @@ Composition (as built 2026-10-01, the guest's opening is a sealed
 envelope addressed to them):
 
 ``` text
-                         A & G
+                     [ monogram ]
 
                   ANGELO & GICHELLE
 
@@ -226,7 +226,7 @@ envelope addressed to them):
           ┌──────────────────────────────────┐
           │ ╲                              ╱ │
           │    ╲                        ╱    │
-          │       ╲      ( A&G )     ╱       │   ← wax seal = the way in
+          │       ╲      ( G·A )     ╱       │   ← wax seal = the way in
           │          WITH LOVE, FOR          │
           │          RHEA & ERWIN            │
           └──────────────────────────────────┘
@@ -240,7 +240,8 @@ The envelope mirrors the printed 5×7 card's envelope ("one invitation,
 two mediums"). It is drawn in code from the theme tokens, so it follows
 the theme: Heritage gives ivory paper and a Deep Burgundy seal; Editorial
 gives white paper and a near-black seal. Faint paper grain, soft shadow,
-fold lines, and a seal with an uneven wax edge and embossed monogram.
+fold lines, and a seal with an uneven wax edge carrying the monogram
+artwork in gold (§4.3; since 2026-10-03, before that "A&G" in text).
 
 -   The seal invites touch without words: after 3s untouched it glows
     softly every few seconds (light catching wax); it presses down under
@@ -249,6 +250,9 @@ fold lines, and a seal with an uneven wax edge and embossed monogram.
     the seal (or the hint under the envelope) lifts the seal, folds the
     flap back, slides out the card (monogram, couple names, date), then
     opens the invitation (§20). No extra step.
+-   The same tap starts the song (added 2026-10-03, §20). There is no
+    music prompt or autoplay: browsers only allow sound from a tap, and
+    the seal is that tap.
 -   The guest's name is real text on the envelope (an `h1`), in the
     first server-rendered HTML, sized to the envelope so long names
     ("The Santos Family") fit.
@@ -304,13 +308,19 @@ are 12px). The closing uses the same size.
 
 ### 3. Monogram
 
-``` text
-A & G
-```
+A drawn monogram (since 2026-10-03; plain "A & G" text before that): a
+gold G with an A set inside it and a fine floral sprig, on a transparent
+background.
 
-Small and understated.
+Small and understated. It appears at the top of the opening, on the card
+inside the envelope, on the wax seal, in the closing and on the "not
+found" page, all through `components/Decor/Monogram.tsx`
+(`public/images/monogram.webp`). It is decorative: the couple's names are
+always written out nearby. In Editorial it turns grey with the photo
+filter.
 
-The monogram should also be usable in the physical invitation.
+The same artwork sits at the centre of each printed QR code (§18), so the
+monogram is shared by the physical and digital invitation.
 
 ### 4. Date and location
 
@@ -820,8 +830,7 @@ Example:
   "couple": {
     "groom": "Angelo",
     "bride": "Gichelle",
-    "displayName": "Angelo & Gichelle",
-    "monogram": "A & G"
+    "displayName": "Angelo & Gichelle"
   },
   "date": {
     "display": "10 February 2027",
@@ -850,6 +859,11 @@ Example:
       { "label": "Manila", "zone": "Asia/Manila" }
     ]
   },
+  "music": {
+    "src": "/audio/risk-it-all.mp3",
+    "title": "Risk It All",
+    "artist": "Bruno Mars"
+  },
   "settings": {
     "theme": "heritage",
     "sections": {
@@ -861,6 +875,11 @@ Example:
   }
 }
 ```
+
+`music` (added 2026-10-03) is the song that starts when the envelope opens:
+`src` is a file in `public/audio/`, and `title` and `artist` make the
+music button's tooltip. `null` gives a silent invitation with no button
+(§20).
 
 `location` fields: `room` (optional small caps under the venue name),
 `directions` (optional one-line note on finding the room), `image` (venue
@@ -986,7 +1005,8 @@ reminder (`closing.rsvpReminder`, `closing.rsvpReminderCta`), the
 online-ceremony copy (eyebrow,
 jump link, messages before and after the link exists, button, and the
 "Starting soon" / "Live now" / "Watch the replay" / "Open in YouTube"
-labels; see §21) and the closing's "Back to top" label.
+labels; see §21), the music button's labels (`music.play`, `music.pause`)
+and the closing's "Back to top" label.
 
 Example:
 
@@ -1441,11 +1461,16 @@ Project structure:
 scripts/
 ├── add-guest.mts
 ├── remove-guest.mts
-└── generate-qrs.mts
+├── generate-qrs.mts
+├── qr-card-template.png   ← card design the QR is set into (1024×1536)
+└── qr-card-monogram.png   ← monogram artwork for the QR's centre
 
 print/                  ← git-ignored, never deployed
 ├── qr-sheet.html
-├── png/                ← one PNG per guest (1200×1200)
+├── cards/              ← the finished card per guest (2048×3072)
+│   ├── 7XK92M.png
+│   └── ...
+├── png/                ← the bare QR, one PNG per guest (1200×1200)
 │   ├── 7XK92M.png
 │   ├── 4Q8N2P.png
 │   └── ...
@@ -1462,14 +1487,21 @@ The generator:
 1. Reads `data/guests.json`.
 2. Validates that every guest has a unique, well-formed code (6 uppercase
    letters/digits), and stops with an error otherwise.
-3. Clears `print/png/` and `print/svg/` so a removed guest's old QR can
-   never be printed.
+3. Clears `print/png/`, `print/svg/` and `print/cards/` so a removed
+   guest's old QR can never be printed.
 4. Constructs the canonical personalized URL.
 5. Generates one 1200×1200 PNG per guest in `print/png/` and a matching SVG
    in `print/svg/`.
-6. Names each file by the opaque code, never the guest's name.
-7. Writes the internal reference sheet.
-8. Prints a success/failure summary.
+6. Builds the finished card in `print/cards/` (added 2026-10-03): the floral
+   "You're invited · Scan to open your invitation" design with the guest's
+   QR set between its two brass rules and the monogram at the QR's centre.
+   The design's artwork contains a drawn QR that does not scan; the script
+   covers it with a soft patch of paper colour and draws the real code on
+   whole-pixel modules in the site's soft black (`#242220`). Uses `sharp`
+   (dev dependency).
+7. Names each file by the opaque code, never the guest's name.
+8. Writes the internal reference sheet.
+9. Prints a success/failure summary.
 
 Commands:
 
@@ -1494,7 +1526,11 @@ For physical printing, the generated QR should:
 - use high error correction (recommended level H);
 - include a quiet zone around the code;
 - use strong foreground/background contrast;
-- avoid decorative overlays that reduce scan reliability;
+- avoid decorative overlays that reduce scan reliability. The one
+  exception (2026-10-03) is the monogram at the centre of the card's QR:
+  the modules in a clearing about a third of the QR's width are left out
+  and level H error correction recovers them. Every card decoded correctly
+  with macOS's QR reader; a larger monogram would need re-testing;
 - be generated at high enough resolution for the final print size;
 - preserve the QR's square aspect ratio;
 - be tested from the actual final print proof, not only from the source PNG/SVG.
@@ -1627,9 +1663,22 @@ Suggested values:
     it grows to fill the viewport (0.9s) while its writing fades and its
     paper turns into the page colour → the invitation swaps in beneath with
     no fade → the sheet dissolves (0.7s) as "Our story / Us" rises in. No
-    extra title sequence, letterboxing or music after the envelope
-    (decided 2026-10-01). Reduced motion: straight to the invitation.
+    extra title sequence or letterboxing after the envelope (decided
+    2026-10-01; that decision also ruled out music, reversed 2026-10-03,
+    see the next point). Reduced motion: straight to the invitation.
     Reload, Back/Forward follow §2.2.
+-   Music (added 2026-10-03, `components/Music/Music.tsx`): the tap on the
+    seal starts the song from the beginning, fading in over 2.5s while the
+    envelope opens, and it loops. iPhones ignore a website's volume, so the
+    fade should also be baked into the file (README). A small round button
+    in the bottom-left corner pauses and resumes it (moving bars while
+    playing, a note when paused). The song pauses when the guest leaves the
+    tab (resuming on return), taps into an embedded player (the
+    livestream), or goes Back to the envelope; opening the envelope again
+    restarts it from the top. A reloaded invitation has no tap to start
+    from, so it stays quiet until the button is pressed. Reduced motion
+    still gets the song. A missing file or `music: null` means silence and
+    no button.
 -   Chapter dots: a slim column of dots on the right edge (Story, The
     Day, The Place, RSVP; only enabled sections). They fade in once the
     guest scrolls past 200px; the current chapter's dot fills in brass;
@@ -2200,7 +2249,10 @@ components/
 │   └── VenueFilm/
 │
 ├── Decor/
-│   └── FloralCorners/
+│   ├── FloralCorners/
+│   └── Monogram/
+│
+├── Music/
 │
 ├── RSVP/
 │   ├── Attendance/
@@ -2241,7 +2293,8 @@ wedding-invitation/
 │   ├── Story/                Timeline, TimelineEntry, PhotoCarousel
 │   ├── WeddingDay/           Schedule, EventCard, LiveStream
 │   ├── Place/                VenueCard, VenueArch, VenueFilm
-│   ├── Decor/                FloralCorners
+│   ├── Decor/                FloralCorners, Monogram
+│   ├── Music/                Music (the song and its pause button)
 │   ├── RSVP/                 RSVP, RsvpReminder, replied (reply memory)
 │   ├── Motion/               MotionProvider, Reveal
 │   └── Theme/                theme, ThemeSwitcher
@@ -2262,11 +2315,15 @@ wedding-invitation/
 ├── scripts/
 │   ├── add-guest.mts
 │   ├── remove-guest.mts
-│   └── generate-qrs.mts
+│   ├── generate-qrs.mts
+│   ├── qr-card-template.png  card design for the printed QR cards
+│   └── qr-card-monogram.png  monogram artwork (full size)
 │
 ├── docs/                     this handoff + context.md
 ├── proxy.ts                  lowercase codes → uppercase URL
-├── public/images/            photos (story, venue)
+├── next.config.ts            dev badge moved off the music button
+├── public/images/            photos (story, venue), monogram.webp
+├── public/audio/             the song
 ├── public/decor/             floral corner artwork
 ├── background-flowers.png    source mockup for the floral corners
 └── print/                    generated QRs (git-ignored)

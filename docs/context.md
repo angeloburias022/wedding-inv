@@ -15,7 +15,8 @@ summarises it and records what has happened since.
 - **What:** Personalised digital wedding invitation, paired with a 5×7
   folded physical card. "One invitation, two mediums."
 - **Wedding:** 10 February 2027, Melbourne, Australia
-- **Couple:** Angelo & Gichelle (monogram "A & G")
+- **Couple:** Angelo & Gichelle (monogram: the G·A artwork with a floral
+  sprig, `public/images/monogram.webp`)
 - **Signature:** "Designed & built by Angelo"
 - **Stack:** Next.js 16.3 (App Router) + TypeScript + Tailwind CSS v4 +
   Motion (the renamed Framer Motion, `motion` package), on Vercel
@@ -60,7 +61,8 @@ secondary) → RSVP → Closing. One continuous vertical scroll.
   invitations that haven't been sent.
 - One QR code per guest, built by `npm run generate:qrs`
   (`scripts/generate-qrs.mts`) from `guests.json`. Error correction level H,
-  SVG + PNG output, plus a print reference sheet. Output goes to `print/`
+  SVG + PNG output, a finished floral card per guest (since 2026-10-03),
+  plus a print reference sheet. Output goes to `print/`
   (git-ignored, never deployed) rather than `public/` as the handoff
   suggested, because the sheet contains guest names. Printed QR links must
   keep working permanently.
@@ -120,7 +122,24 @@ secondary) → RSVP → Closing. One continuous vertical scroll.
 - **Cinematic landing = one continuous shot** (2026-10-01): the card that
   slides out grows to fill the screen and dissolves into the story, rather
   than adding a second scene (title sequence, letterboxing, music) after
-  the envelope.
+  the envelope. Music was added after all on 2026-10-03 (next point), but
+  as part of the same shot, not a second scene.
+- **Music** (2026-10-03, at Angelo's request; reverses the "no music"
+  part of the decision above): "Risk It All" (Bruno Mars) starts with the
+  tap on the wax seal, fading in, and loops. No autoplay and no music
+  prompt: browsers only allow sound from a tap, and the seal is that tap.
+  A small button bottom-left pauses and resumes. Self-hosted file chosen
+  over a YouTube embed (visible player required, possible ads, unreliable
+  start on iPhones) and Spotify/Apple Music embeds (30-second previews for
+  guests who aren't signed in). Opening the envelope again restarts the
+  song from the beginning (2026-10-04).
+- **Monogram artwork** (2026-10-03): Angelo's G·A logo replaces the plain
+  "A & G" text everywhere: opening, envelope card, wax seal, closing, the
+  404 page, and the centre of the printed QR codes.
+- **Printed QR card** (2026-10-03): Angelo's floral "You're invited · Scan
+  to open your invitation" design is the card. The QR drawn in that artwork
+  does not scan (image generators draw the pattern, they don't encode it),
+  so `generate:qrs` sets each guest's real code over it.
 - **Interactive guidance** (2026-10-01): the seal glows when idle and
   presses down on tap (vibration on Android), chapter dots show progress
   and jump between sections, and the closing reminds guests to RSVP until
@@ -163,12 +182,13 @@ film, and the YouTube ceremony livestream (link now, player on the day).
 Since 2026-10-01: the envelope opening (wax seal → flap → card that
 becomes the screen), larger couple names, reload keeping the guest's place,
 a "Scroll" hint, chapter dots, the RSVP reminder in the closing, and a more
-visible livestream card.
+visible livestream card. Since 2026-10-03: the song with its pause button,
+the monogram artwork across the site, and a finished QR card per guest.
 
 **Placeholders still in use:** story photos (empty frames), KBBQ name and
 address, the livestream link, venue directions,
 story text beyond the handoff examples, fonts (Cormorant + Jost),
-the monogram (plain "A & G" text), sample guests.
+sample guests.
 
 **Next milestone:** Polish section by section alongside the Figma work,
 then connect the real Google Sheet and deploy to Vercel.
@@ -195,7 +215,17 @@ then connect the real Google Sheet and deploy to Vercel.
   still an option; the main countdown is built (2026-10-02)
 - KBBQ restaurant name and address
 - Display, body and label fonts
-- Monogram design
+- Song rights: the file is an instrumental recording of "Risk It All"
+  supplied by Angelo. It is a copyrighted recording and not licensed for
+  use on a website; the site is unlisted and `noindex`, and the repository
+  should stay private. A bought track or the YouTube embed are the
+  alternatives.
+- Song file: bake a 2 s fade-in into the mp3 and shrink it to 128 kbps
+  (ffmpeg command in the README; ffmpeg isn't installed yet), and test on
+  a real iPhone
+- QR card: a higher-resolution version of the card artwork for print (the
+  current one is 1024×1536, upscaled ×2), whether the guest's name goes on
+  the card, and a scan test from a printed proof with a phone
 - Final US milestones: dates, titles, captions, photos
 - Dress code, parking, transport details
 - Create the unlisted YouTube stream and paste its link into
@@ -396,3 +426,51 @@ then connect the real Google Sheet and deploy to Vercel.
   hint and signature all still on screen) and each state with a faked
   clock. Handoff §4 and §8, README updated.
 
+### 2026-10-03
+
+- Music added (`components/Music/Music.tsx`): new `music` block in
+  `wedding.json` (`src`, `title`, `artist`; `null` turns it off) and
+  `music.play` / `music.pause` labels in `content.json`. The envelope's tap
+  handler starts the song before anything is awaited, which is what lets
+  browsers allow it. `InvitationGate` gained a `useInvitationOpen` hook so
+  the player, which lives outside the gate, knows when the invitation is
+  open. New `animate-equalizer` utility in `globals.css`.
+- Options weighed for the song: self-hosted file, YouTube embed, Spotify
+  and Apple Music embeds, licensing, royalty-free tracks. Angelo supplied
+  an instrumental mp3 (3:24, 6.3 MB), now `public/audio/risk-it-all.mp3`.
+  See the open question on rights.
+- "Not playing" turned out to be two things. In development the Next.js
+  dev badge sat on top of the music button, so clicks never reached it:
+  moved the badge to the top-right in `next.config.ts` (development only;
+  guests were never affected). And the song can't start without a tap on
+  the seal or the button. Verified by driving headless Chrome over its
+  DevTools protocol with real clicks: seal tap starts and fades in, the
+  button pauses and resumes, a reload stays quiet until the button is
+  pressed, and Back to the envelope pauses. That run was muted, so it
+  confirms playback state, not sound; Angelo then confirmed it plays.
+- Lesson: VS Code's built-in preview is not a reliable test for sound; use
+  Chrome or Safari.
+- QR cards: Angelo's floral card design had a drawn QR that macOS's reader
+  could not detect. `generate:qrs` now writes `print/cards/<CODE>.png`
+  (2048×3072) with the real code set into the design
+  (`scripts/qr-card-template.png`) and the monogram at its centre
+  (`scripts/qr-card-monogram.png`). New dev dependency `sharp`. All four
+  cards decode to the right `/invite/<CODE>` link with macOS's QR reader;
+  not yet scanned with a phone or from print.
+- Monogram artwork replaces the "A & G" text across the site (new
+  `components/Decor/Monogram.tsx`, `public/images/monogram.webp`, 640px
+  wide, 87 KB). The `couple.monogram` text field was removed from
+  `wedding.json` and its type. Checked in headless Chrome at phone size:
+  the closed envelope, the card sliding out, and the closing. The 404 page
+  and the Editorial theme were not looked at.
+- README updated (Music, QR codes, file table). Handoff §4, §12, §18, §20,
+  §34, §35 and this file updated on 2026-10-04.
+- Typecheck, lint and the production build pass. Not committed.
+
+### 2026-10-04
+
+- Angelo noticed that going Back to the envelope and opening it again
+  resumed the song where it had stopped. The seal tap now always starts it
+  from the beginning; the corner button still resumes from where it was
+  paused. Verified in headless Chrome: open, Back (pauses at 6 s), tap the
+  seal again, playback restarts from 0:00.

@@ -186,8 +186,13 @@ Aim for under ~8 MB; raise `-crf` (e.g. 30) to shrink it further.
 The song is set by `music` in `data/wedding.json` and starts, fading in, when
 the guest taps the seal (browsers only allow sound from a tap). It loops, and a
 small button in the bottom-left corner pauses and resumes it. It also pauses
-when the guest leaves the tab or taps into the livestream player. A reloaded
-invitation stays quiet until the button is pressed.
+when the guest leaves the tab, taps into the livestream player, or goes Back
+to the envelope; opening the envelope again restarts it from the beginning. A
+reloaded invitation stays quiet until the button is pressed.
+
+In development the Next.js badge is moved to the top-right (`next.config.ts`)
+because its default corner covers the music button. Test sound in Chrome or
+Safari, not VS Code's built-in preview.
 
 Put the file at the `src` path (`public/audio/risk-it-all.mp3`). Until it is
 there the invitation simply opens in silence, with no button. Set `music` to
