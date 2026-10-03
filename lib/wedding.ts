@@ -10,7 +10,6 @@ export type Wedding = {
     groom: string;
     bride: string;
     displayName: string;
-    monogram: string;
   };
   date: {
     display: string;
@@ -44,6 +43,8 @@ export type Wedding = {
     /** The start time is shown in each of these, e.g. Melbourne and Manila. */
     timeZones: { label: string; zone: string }[];
   };
+  /** The song that starts when the envelope opens; null for a silent invitation. */
+  music: { src: string; title: string; artist: string } | null;
   settings: {
     theme: ThemeName;
     sections: {

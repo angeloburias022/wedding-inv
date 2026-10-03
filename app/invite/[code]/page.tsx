@@ -4,6 +4,7 @@ import { Closing } from "@/components/Invitation/Closing";
 import { InvitationGate } from "@/components/Invitation/InvitationGate";
 import { Opening } from "@/components/Invitation/Opening";
 import { ScrollHint } from "@/components/Invitation/ScrollHint";
+import { Music } from "@/components/Music/Music";
 import { VenueCard } from "@/components/Place/VenueCard";
 import { RSVP } from "@/components/RSVP/RSVP";
 import { Timeline } from "@/components/Story/Timeline";
@@ -28,10 +29,16 @@ export default async function InvitePage({ params }: PageProps<"/invite/[code]">
 
   return (
     <main id="top">
+      {wedding.music && (
+        <Music
+          src={wedding.music.src}
+          title={`${wedding.music.title} · ${wedding.music.artist}`}
+          copy={content.music}
+        />
+      )}
       <InvitationGate
         opening={
           <Opening
-            monogram={wedding.couple.monogram}
             coupleName={wedding.couple.displayName}
             date={wedding.date.display}
             city={wedding.location.city}

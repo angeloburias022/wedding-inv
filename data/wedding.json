@@ -2,8 +2,7 @@
   "couple": {
     "groom": "Angelo",
     "bride": "Gichelle",
-    "displayName": "Angelo & Gichelle",
-    "monogram": "A & G"
+    "displayName": "Angelo & Gichelle"
   },
   "date": {
     "display": "10 February 2027",
@@ -31,6 +30,11 @@
       { "label": "Melbourne", "zone": "Australia/Melbourne" },
       { "label": "Manila", "zone": "Asia/Manila" }
     ]
+  },
+  "music": {
+    "src": "/audio/risk-it-all.mp3",
+    "title": "Risk It All",
+    "artist": "Bruno Mars"
   },
   "settings": {
     "theme": "heritage",

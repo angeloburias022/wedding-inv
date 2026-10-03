@@ -37,11 +37,13 @@ npm run generate:qrs  # QR codes + print sheet → print/ (git-ignored)
 | `proxy.ts` | Redirects lowercase codes to the uppercase URL |
 | `app/globals.css` | Theme tokens (Heritage default, Editorial override) |
 | `components/` | Sections, grouped as in handoff §34 |
+| `components/Decor/Monogram.tsx` | The couple's monogram artwork (`public/images/monogram.webp`): opening, envelope card, wax seal, closing |
 | `components/Decor/FloralCorners.tsx` | Fixed floral corners behind every page |
 | `components/Place/VenueArch.tsx` | Venue photo revealed through an opening arch |
 | `components/Place/VenueFilm.tsx` | Scroll-driven venue clip (used when `location.video` is set) |
 | `components/Story/PhotoCarousel.tsx` | Swipeable photos when a story entry has several |
 | `components/Invitation/Envelope.tsx` | The guest's opening: sealed envelope that opens into the invitation |
+| `components/Music/Music.tsx` | The song: starts on the seal tap, with a pause button bottom-left |
 | `components/Invitation/ChapterNav.tsx` | Chapter dots on the right edge: progress and jump to a section |
 | `components/RSVP/RsvpReminder.tsx` | Closing reminder until the guest has replied (remembered in `components/RSVP/replied.ts`) |
 | `components/Invitation/ScrollHint.tsx` | "Scroll" cue shown after opening, gone on first scroll |
@@ -52,6 +54,7 @@ npm run generate:qrs  # QR codes + print sheet → print/ (git-ignored)
 | `lib/photos.ts` | Reads photo dimensions at build time so frames fit each photo |
 | `public/images/` | Photos (story, venue) |
 | `public/decor/` | Decorative artwork (floral corners) |
+| `scripts/qr-card-template.png`, `scripts/qr-card-monogram.png` | Card design and monogram the per-guest QR cards are built from |
 | `background-flowers.png` | Source mockup the floral corners are cropped from |
 | `docs/` | Product/design spec (handoff) and running project context |
 | `scripts/add-guest.mts` | Adds a guest with a new random code |
@@ -93,12 +96,21 @@ would stop working.
 
 `npm run generate:qrs` writes, for every guest in `data/guests.json`:
 
-- `print/png/<CODE>.png` — one 1200×1200 PNG per guest
-- `print/svg/<CODE>.svg` — the same QR as a vector, for print (sharp at any size)
+- `print/cards/<CODE>.png` — the finished card (2048×3072): the guest's QR set
+  into the floral design, with the monogram at its centre
+- `print/png/<CODE>.png` — the bare QR, one 1200×1200 PNG per guest
+- `print/svg/<CODE>.svg` — the bare QR as a vector, for print (sharp at any size)
 - `print/qr-sheet.html` — internal sheet listing name, code, link and QR for
   matching QRs to cards (`open print/qr-sheet.html`)
 
 `print/` is git-ignored and never deployed because the sheet has guest names.
+
+The card design is `scripts/qr-card-template.png` (1024×1536). The QR drawn in
+that artwork does not scan, so the script covers it and sets the real one in
+its place, with the monogram (`scripts/qr-card-monogram.png`, a transparent
+PNG) at its centre. Positions and colours are in `card` at the top of
+`scripts/generate-qrs.mts`. To change the design, replace the template and
+adjust `card.qr` to the new space.
 QRs encode `PUBLIC_INVITATION_ORIGIN/invite/<CODE>` (default
 `https://angeloandgichelle.com`); names are never in the QR.
 
@@ -168,6 +180,29 @@ ffmpeg -i original.mov -an -vf "scale=1280:-2,fps=30" \
 ```
 
 Aim for under ~8 MB; raise `-crf` (e.g. 30) to shrink it further.
+
+## Music
+
+The song is set by `music` in `data/wedding.json` and starts, fading in, when
+the guest taps the seal (browsers only allow sound from a tap). It loops, and a
+small button in the bottom-left corner pauses and resumes it. It also pauses
+when the guest leaves the tab or taps into the livestream player. A reloaded
+invitation stays quiet until the button is pressed.
+
+Put the file at the `src` path (`public/audio/risk-it-all.mp3`). Until it is
+there the invitation simply opens in silence, with no button. Set `music` to
+`null` to turn it off.
+
+Keep the file small, since every guest downloads it (`brew install ffmpeg`):
+
+```bash
+ffmpeg -i original.mp3 -vn -c:a libmp3lame -b:a 128k \
+  -af "afade=t=in:d=2" public/audio/risk-it-all.mp3
+```
+
+The `afade` bakes in the fade-in for iPhones, which ignore a website's volume
+changes. The recording is copyrighted: keep the site unlisted (it is already
+`noindex`) and the repository private.
 
 ## Ceremony livestream
 

@@ -1,12 +1,11 @@
 import Link from "next/link";
+import { Monogram } from "@/components/Decor/Monogram";
 import { wedding } from "@/lib/wedding";
 
 export default function NotFound() {
   return (
     <main className="flex min-h-svh flex-col items-center justify-center gap-8 px-6 text-center">
-      <p className="font-display text-xl tracking-[0.3em] text-detail" aria-hidden>
-        {wedding.couple.monogram}
-      </p>
+      <Monogram preload className="h-16 w-auto md:h-20" />
       <h1 className="font-display text-4xl leading-tight text-balance md:text-5xl">
         We couldn&rsquo;t find this invitation.
       </h1>

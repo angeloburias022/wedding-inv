@@ -71,7 +71,7 @@ type InvitationGateProps = {
  * invitation stays on it, at the same scroll position.
  */
 export function InvitationGate({ opening, children }: InvitationGateProps) {
-  const open = useSyncExternalStore(subscribe, isOpenEntry, getServerSnapshot);
+  const open = useInvitationOpen();
 
   const openInvitation = (options?: OpenOptions) => {
     if (!isOpenEntry()) {
@@ -161,6 +161,11 @@ function OpenedContent({ children }: { children: React.ReactNode }) {
       {children}
     </div>
   );
+}
+
+/** Whether the invitation is open, for anything living outside the gate (the music). */
+export function useInvitationOpen() {
+  return useSyncExternalStore(subscribe, isOpenEntry, getServerSnapshot);
 }
 
 /** Opens the invitation from inside the opening (the envelope's seal). */

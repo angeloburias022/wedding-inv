@@ -56,6 +56,10 @@
     "thanksYes": "Thank you — we can't wait to see you.",
     "thanksNo": "Thank you for letting us know. You'll be missed."
   },
+  "music": {
+    "play": "Play music",
+    "pause": "Pause music"
+  },
   "closing": {
     "message": "We can't wait to celebrate with you.",
     "rsvpReminder": "We'd love to know if you can make it.",

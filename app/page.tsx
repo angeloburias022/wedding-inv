@@ -6,7 +6,6 @@ export default function Home() {
   return (
     <main>
       <Opening
-        monogram={wedding.couple.monogram}
         coupleName={wedding.couple.displayName}
         date={wedding.date.display}
         city={wedding.location.city}

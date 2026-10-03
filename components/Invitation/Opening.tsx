@@ -1,11 +1,11 @@
 import type { CSSProperties } from "react";
+import { Monogram } from "@/components/Decor/Monogram";
 import { Countdown } from "@/components/WeddingDay/Countdown";
 import { DaysToGo } from "@/components/WeddingDay/DaysToGo";
 import type { Content } from "@/lib/wedding";
 import { Envelope } from "./Envelope";
 
 type OpeningProps = {
-  monogram: string;
   coupleName: string;
   date: string;
   city: string;
@@ -38,7 +38,6 @@ function rise(delayMs: number, risePx = 0, durationMs?: number): CSSProperties {
 
 /** The first screen (handoff §4): whose invitation is this, and what am I about to experience? */
 export function Opening({
-  monogram,
   coupleName,
   date,
   city,
@@ -53,9 +52,7 @@ export function Opening({
   return (
     <header className="relative flex min-h-svh flex-col items-center justify-between px-6 py-12 text-center md:py-16">
       <div className="flex animate-rise flex-col items-center gap-6" style={rise(0)}>
-        <p className="font-display text-xl tracking-[0.3em] text-detail" aria-hidden>
-          {monogram}
-        </p>
+        <Monogram preload className="h-16 w-auto md:h-20" />
         {/* Second in the hierarchy (handoff §4): well above the labels, well below the guest's name. */}
         <p className="font-display text-2xl leading-tight tracking-[0.14em] text-ink uppercase md:text-3xl">
           {coupleName}
@@ -84,7 +81,6 @@ export function Opening({
             eyebrow={eyebrow}
             cta={cta}
             hint={envelopeHint}
-            monogram={monogram}
             coupleName={coupleName}
             date={date}
           />

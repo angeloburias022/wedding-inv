@@ -1,3 +1,4 @@
+import { Monogram } from "@/components/Decor/Monogram";
 import { Reveal } from "@/components/Motion/Reveal";
 import { RsvpReminder } from "@/components/RSVP/RsvpReminder";
 import { ThemeSwitcher } from "@/components/Theme/ThemeSwitcher";
@@ -17,9 +18,7 @@ export function Closing({ wedding, copy, signature, rsvpCode }: ClosingProps) {
     <footer className="flex flex-col items-center gap-16 px-6 pt-32 pb-12 text-center">
       <Reveal y={12} className="flex flex-col items-center gap-8">
         <p className="font-display text-4xl leading-tight text-balance md:text-5xl">{copy.message}</p>
-        <p className="font-display text-xl tracking-[0.3em] text-detail" aria-hidden>
-          {wedding.couple.monogram}
-        </p>
+        <Monogram className="h-16 w-auto md:h-20" />
         <div className="flex flex-col gap-2">
           <p className="font-display text-2xl leading-tight tracking-[0.14em] uppercase md:text-3xl">
             {wedding.couple.displayName}

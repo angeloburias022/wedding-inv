@@ -2,6 +2,8 @@
 
 import { animate as animateElement, useAnimate } from "motion/react";
 import { useRef } from "react";
+import { Monogram } from "@/components/Decor/Monogram";
+import { startMusic } from "@/components/Music/Music";
 import { useOpenInvitation } from "./InvitationGate";
 
 type EnvelopeProps = {
@@ -10,7 +12,6 @@ type EnvelopeProps = {
   /** Accessible name of the seal button, e.g. "Open invitation". */
   cta: string;
   hint: string;
-  monogram: string;
   coupleName: string;
   date: string;
 };
@@ -32,7 +33,7 @@ const FLAP_DEPTH = 46;
  * to fill the screen and dissolves into the story, one continuous shot.
  * Reduced motion skips straight to the invitation.
  */
-export function Envelope({ guestName, eyebrow, cta, hint, monogram, coupleName, date }: EnvelopeProps) {
+export function Envelope({ guestName, eyebrow, cta, hint, coupleName, date }: EnvelopeProps) {
   const openInvitation = useOpenInvitation();
   const [scope, animate] = useAnimate<HTMLDivElement>();
   const opening = useRef(false);
@@ -40,6 +41,8 @@ export function Envelope({ guestName, eyebrow, cta, hint, monogram, coupleName, 
   const open = async () => {
     if (opening.current) return;
     opening.current = true;
+    // Must happen inside the tap itself, or the browser blocks the sound.
+    startMusic();
     // A light tick where supported (Android); iPhones don't let websites vibrate.
     navigator.vibrate?.(12);
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -75,9 +78,7 @@ export function Envelope({ guestName, eyebrow, cta, hint, monogram, coupleName, 
           data-card
           className="paper absolute inset-x-[5%] top-[5%] bottom-[8%] z-[2] flex flex-col items-center justify-start gap-2 border border-line bg-surface pt-[6%] text-center"
         >
-          <p className="font-display text-sm tracking-[0.3em] text-detail" aria-hidden>
-            {monogram}
-          </p>
+          <Monogram className="h-[11cqw] w-auto" />
           <p className="font-display text-base tracking-[0.14em] text-ink uppercase md:text-lg">{coupleName}</p>
           <p className="label text-[0.6rem] text-muted">{date}</p>
         </div>
@@ -129,9 +130,8 @@ export function Envelope({ guestName, eyebrow, cta, hint, monogram, coupleName, 
             style={{ clipPath: SEAL_EDGE }}
           />
           <span className="absolute inset-[14%] rounded-full border border-[color-mix(in_srgb,var(--color-accent)_70%,black)] shadow-[inset_0_1px_1px_rgb(255_255_255/0.18)]" />
-          <span className="relative font-display text-sm tracking-wide text-[color-mix(in_srgb,var(--color-accent)_55%,black)] [text-shadow:0_1px_0_rgb(255_255_255/0.25)] md:text-base">
-            {monogram.replace(/\s/g, "")}
-          </span>
+          {/* The monogram pressed into the wax. */}
+          <Monogram className="relative h-auto w-[58%] drop-shadow-[0_1px_0_rgb(0_0_0/0.3)]" />
         </button>
       </div>
 
