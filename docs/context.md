@@ -151,6 +151,14 @@ secondary) → RSVP → Closing. One continuous vertical scroll.
   screen gets a quiet, non-ticking "131 days to go" line under the date
   instead of the clock; the generic landing page shows the full clock.
   Not sticky.
+- **Add to calendar, not email** (2026-10-04): guests save the ceremony
+  themselves from a button (Google Calendar, or a calendar file for Apple,
+  Outlook and others). Nothing can be written to a guest's calendar without
+  their tap. A real calendar invitation by email would appear automatically
+  for some guests, but needs their email address, a sending service and the
+  domain; left for later, along with reminder emails. The event is 30
+  minutes at 2:00 PM with reminders one month, one week and one day before
+  (Angelo's choices).
 - **No auto-scroll after opening** (2026-10-01): it takes control from
   guests, rushes past the story and RSVP, and hurts accessibility. Instead
   a gentle "Scroll" hint shows until the first scroll. A sticky RSVP
@@ -230,10 +238,21 @@ then connect the real Google Sheet and deploy to Vercel.
 - Dress code, parking, transport details
 - Create the unlisted YouTube stream and paste its link into
   `onlineCeremony.url`; confirm the start time; pick who runs the camera
-- RSVP: whether meal preference and a confirmation email are needed
+- RSVP: whether meal preference and a confirmation email are needed; an
+  optional email field would also allow a real calendar invitation and
+  reminder emails (needs Resend or similar, and the domain)
 - Domain registration
 - Guest list and invitation codes
 - Where the theme switcher lives (currently only in the closing)
+- "Under the paper" (parked 2026-10-04, build only when Angelo says go): a
+  hidden specs card at the end of the invitation, opened from the
+  "Designed & built by Angelo" signature in the closing. In the
+  invitation's own type, never a terminal look. Proposed lines: stack and
+  versions, how the page is delivered and its load time, commit and build
+  date, days in the making, the song and its position, the theme, the
+  countdown, and a closing "with love, for Gichelle". Nothing about the
+  guest (no code, name or device) and no guest or RSVP counts. Kept hidden
+  to respect handoff §5 (no technical metadata on show)
 - Whether to show an RSVP deadline
 
 ------------------------------------------------------------------------
@@ -474,3 +493,30 @@ then connect the real Google Sheet and deploy to Vercel.
   from the beginning; the corner button still resumes from where it was
   paused. Verified in headless Chrome: open, Back (pauses at 6 s), tap the
   seal again, playback restarts from 0:00.
+- Reload no longer silences the song (Angelo's request). A page reload
+  always interrupts sound and browsers block it from restarting without a
+  tap, so true continuity isn't possible. Instead the position and whether
+  it was playing are saved per tab on `pagehide`; after a reload the song
+  resumes from that point, immediately if the browser allows, otherwise on
+  the first tap or key press anywhere. Verified in headless Chrome: reload
+  while playing (resumed from 9 s on the first tap), reload while paused
+  (stays paused at the same place, a tap doesn't start it, the button
+  does), and Back + re-open still restarts from 0:00.
+- Back to the envelope no longer pauses the song (Angelo's request, after
+  deciding against disabling the Back button, which browsers don't allow
+  and guests would read as a frozen page). The music button stays on the
+  envelope screen while the song plays. Opening the envelope again carries
+  on; it restarts from 0:00 only if the song was paused. This replaces the
+  earlier same-day behaviour (pause on Back, restart on re-open).
+- "Add to calendar" built: `lib/calendar.ts` (event, Google link, `.ics`
+  with folding and escaping), `app/invite/[code]/wedding.ics/route.ts`
+  (prerendered per guest, unknown codes 404),
+  `components/WeddingDay/AddToCalendar.tsx`, new `date.ceremonyMinutes`
+  in `wedding.json` and `calendar` copy in `content.json`. Shown under the
+  ceremony in THE DAY and in the RSVP thank-you after a "yes". Checked: the
+  file's contents and headers by fetching it (start 03:00 UTC = 2:00 PM
+  Melbourne, 30 minutes, alarms at 31, 7 and 1 days), the Google link's
+  fields, and both placements with the menu open in headless Chrome at
+  phone size. Not yet opened in a real Google, Apple or Outlook calendar.
+- Considered and declined: disabling the Back button. Parked: the hidden
+  "Under the paper" specs card (see open questions).

@@ -14,19 +14,75 @@ type MusicProps = {
 const VOLUME = 0.7;
 const FADE_IN_MS = 2500;
 
+const STORAGE_KEY = "invitationMusic";
+
 // One player per page, reachable from the envelope's tap handler.
 let player: HTMLAudioElement | null = null;
 let fadeFrame = 0;
+/** Whether the guest wants the song on; stays true through a pause we made (hidden tab, reload). */
+let wanted = false;
+/** Set the first time the invitation is open in this page load; a reload is picked up then. */
+let hasOpened = false;
+
+type Saved = { time: number; playing: boolean };
+
+function savePlayback() {
+  if (!player) return;
+  try {
+    const saved: Saved = { time: player.currentTime, playing: wanted };
+    sessionStorage.setItem(`${STORAGE_KEY}:${location.pathname}`, JSON.stringify(saved));
+  } catch {
+    // Storage can be unavailable (private mode); a reload then starts quiet.
+  }
+}
+
+function readPlayback(): Saved | null {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(`${STORAGE_KEY}:${location.pathname}`) ?? "null");
+    return typeof saved?.time === "number" ? saved : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * After a reload: back to where the song was and, if it was playing, on again.
+ * A reload has no tap, so most browsers refuse the sound; the song then
+ * resumes with the guest's first tap or key press anywhere on the page.
+ */
+function pickUpAfterReload(audio: HTMLAudioElement, saved: Saved) {
+  const resume = () => {
+    audio.currentTime = saved.time;
+    if (!saved.playing) return;
+    wanted = true;
+    audio.volume = VOLUME;
+    audio.play().catch(() => {
+      const onGesture = (event: Event) => {
+        document.removeEventListener("pointerup", onGesture, true);
+        document.removeEventListener("keydown", onGesture, true);
+        // The music button does its own toggling.
+        if ((event.target as Element | null)?.closest?.("[data-music-button]")) return;
+        if (wanted && audio.paused) audio.play().catch(() => {});
+      };
+      document.addEventListener("pointerup", onGesture, true);
+      document.addEventListener("keydown", onGesture, true);
+    });
+  };
+  if (audio.readyState >= HTMLMediaElement.HAVE_METADATA) resume();
+  else audio.addEventListener("loadedmetadata", resume, { once: true });
+}
 
 /**
  * Starts the song from the beginning, fading in. Browsers only allow sound
  * from inside a tap, so the envelope calls this straight from the seal's click
  * handler, before any awaiting. iPhones ignore the volume and start at full level.
+ * A song already playing (the guest came Back to the envelope) just carries on.
  */
 export function startMusic() {
   const audio = player;
   if (!audio || !audio.paused) return;
-  // Opening the envelope again (after Back) is a fresh start, not a resume.
+  wanted = true;
+  // Opening the envelope with the song paused is a fresh start, not a resume.
   audio.currentTime = 0;
   audio.volume = 0;
   audio.play().then(
@@ -47,7 +103,11 @@ export function startMusic() {
 function toggleMusic() {
   const audio = player;
   if (!audio) return;
-  if (!audio.paused) return audio.pause();
+  if (!audio.paused) {
+    wanted = false;
+    return audio.pause();
+  }
+  wanted = true;
   cancelAnimationFrame(fadeFrame);
   audio.volume = VOLUME;
   audio.play().catch(() => {});
@@ -56,9 +116,11 @@ function toggleMusic() {
 /**
  * The invitation's song (set by `music` in wedding.json). It starts with the
  * tap on the seal and loops; a small button in the bottom-left corner pauses
- * and resumes it. It pauses when the guest leaves the tab, returns to the
- * envelope, or taps into an embedded player (the livestream). A reloaded
- * invitation has no tap to start from, so the button waits to be pressed.
+ * and resumes it. It keeps playing if the guest goes Back to the envelope
+ * (the button stays with it), and pauses when the guest leaves the tab or
+ * taps into an embedded player (the livestream). A reload keeps
+ * its place in the song and carries on as soon as the browser allows: at once
+ * where it permits sound without a tap, otherwise on the guest's next tap.
  * Lives outside the gate so the song carries from the envelope into the story.
  */
 export function Music({ src, title, copy }: MusicProps) {
@@ -66,9 +128,13 @@ export function Music({ src, title, copy }: MusicProps) {
   const [playing, setPlaying] = useState(false);
   const [failed, setFailed] = useState(false);
 
-  // Browser Back to the envelope: the button is gone, so the song stops too.
   useEffect(() => {
-    if (!open) player?.pause();
+    if (!open || hasOpened) return;
+    hasOpened = true;
+    // Opened by the seal's tap: the song is already starting from the top.
+    if (wanted || !player) return;
+    const saved = readPlayback();
+    if (saved) pickUpAfterReload(player, saved);
   }, [open]);
 
   useEffect(() => {
@@ -85,13 +151,17 @@ export function Music({ src, title, copy }: MusicProps) {
     };
     // Focus moving into an iframe is the only sign that an embedded video was tapped.
     const onBlur = () => {
-      if (document.activeElement instanceof HTMLIFrameElement) player?.pause();
+      if (!(document.activeElement instanceof HTMLIFrameElement)) return;
+      wanted = false;
+      player?.pause();
     };
     document.addEventListener("visibilitychange", onVisibility);
     window.addEventListener("blur", onBlur);
+    window.addEventListener("pagehide", savePlayback);
     return () => {
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("blur", onBlur);
+      window.removeEventListener("pagehide", savePlayback);
     };
   }, []);
 
@@ -110,9 +180,11 @@ export function Music({ src, title, copy }: MusicProps) {
         onPause={() => setPlaying(false)}
         onError={() => setFailed(true)}
       />
-      {open && !failed && (
+      {/* Hidden while the envelope first opens; back on the envelope it stays while the song plays. */}
+      {(open || (playing && hasOpened)) && !failed && (
         <button
           type="button"
+          data-music-button
           onClick={toggleMusic}
           aria-label={playing ? copy.pause : copy.play}
           title={title}

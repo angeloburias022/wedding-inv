@@ -16,6 +16,8 @@ export type Wedding = {
     iso: string;
     /** Ceremony start with its UTC offset; the countdown counts to this. */
     startsAt: string;
+    /** How long the ceremony runs; the length of the "Add to calendar" event. */
+    ceremonyMinutes: number;
     /** The zone the wedding day belongs to ("Today" in the countdown). */
     timeZone: string;
   };

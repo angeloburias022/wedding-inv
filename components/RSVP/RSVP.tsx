@@ -4,6 +4,7 @@ import { useActionState, useEffect, useState } from "react";
 import { submitRsvp, type RsvpState } from "@/app/actions/rsvp";
 import { SectionHeader } from "@/components/Invitation/SectionHeader";
 import { Reveal } from "@/components/Motion/Reveal";
+import { AddToCalendar, type CalendarLinks } from "@/components/WeddingDay/AddToCalendar";
 import type { Content } from "@/lib/wedding";
 import { markReplied } from "./replied";
 
@@ -12,6 +13,8 @@ type RSVPProps = {
   greeting: string;
   names: string[];
   copy: Content["rsvp"];
+  calendarCopy: Content["calendar"];
+  calendar: CalendarLinks;
 };
 
 const initialState: RsvpState = { status: "idle" };
@@ -23,7 +26,7 @@ const fieldClass =
  * RSVP (handoff §10). The guest is already known from the invitation code,
  * so we never ask for their name — only attendance, who's coming and dietary needs.
  */
-export function RSVP({ code, greeting, names, copy }: RSVPProps) {
+export function RSVP({ code, greeting, names, copy, calendarCopy, calendar }: RSVPProps) {
   const [state, formAction, pending] = useActionState(submitRsvp, initialState);
   const [attendance, setAttendance] = useState<"yes" | "no" | null>(null);
   const [editing, setEditing] = useState(false);
@@ -46,6 +49,8 @@ export function RSVP({ code, greeting, names, copy }: RSVPProps) {
             <p className="font-display text-3xl leading-snug text-balance">
               {state.attending ? copy.thanksYes : copy.thanksNo}
             </p>
+            {/* The moment a guest wants the date saved: right after saying yes. */}
+            {state.attending && <AddToCalendar links={calendar} copy={calendarCopy} emphasis="button" />}
             <button
               type="button"
               onClick={() => setEditing(true)}

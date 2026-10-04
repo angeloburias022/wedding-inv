@@ -56,6 +56,14 @@
     "thanksYes": "Thank you — we can't wait to see you.",
     "thanksNo": "Thank you for letting us know. You'll be missed."
   },
+  "calendar": {
+    "cta": "Add to calendar",
+    "google": "Google Calendar",
+    "file": "Apple · Outlook · other",
+    "eventTitle": "Angelo & Gichelle's Wedding",
+    "livestreamNote": "Watching from home? The livestream is on your invitation.",
+    "invitationLabel": "Your invitation"
+  },
   "music": {
     "play": "Play music",
     "pause": "Pause music"

@@ -47,6 +47,9 @@ npm run generate:qrs  # QR codes + print sheet → print/ (git-ignored)
 | `components/Invitation/ChapterNav.tsx` | Chapter dots on the right edge: progress and jump to a section |
 | `components/RSVP/RsvpReminder.tsx` | Closing reminder until the guest has replied (remembered in `components/RSVP/replied.ts`) |
 | `components/Invitation/ScrollHint.tsx` | "Scroll" cue shown after opening, gone on first scroll |
+| `components/WeddingDay/AddToCalendar.tsx` | "Add to calendar" menu: beside the ceremony, and after an RSVP "yes" |
+| `lib/calendar.ts` | The ceremony as a calendar event: Google link and `.ics` file |
+| `app/invite/[code]/wedding.ics/route.ts` | One calendar file per invitation, written at build time |
 | `components/WeddingDay/Countdown.tsx` | Days · hours · minutes · seconds to the ceremony (`date.startsAt`) |
 | `components/WeddingDay/DaysToGo.tsx` | Quiet "131 days to go" line on the envelope screen (`lib/days.ts` helpers) |
 | `components/WeddingDay/LiveStream.tsx` | Ceremony livestream: YouTube link, then embedded player on the day |
@@ -186,9 +189,16 @@ Aim for under ~8 MB; raise `-crf` (e.g. 30) to shrink it further.
 The song is set by `music` in `data/wedding.json` and starts, fading in, when
 the guest taps the seal (browsers only allow sound from a tap). It loops, and a
 small button in the bottom-left corner pauses and resumes it. It also pauses
-when the guest leaves the tab, taps into the livestream player, or goes Back
-to the envelope; opening the envelope again restarts it from the beginning. A
-reloaded invitation stays quiet until the button is pressed.
+when the guest leaves the tab or taps into the livestream player. Going Back
+to the envelope keeps it playing, with the button still there, and opening the
+envelope again carries on; if the guest had paused it, opening starts it from
+the beginning.
+
+A reload can't keep the sound going without a gap (the page is rebuilt, and
+browsers block sound until the guest taps). The song's position is remembered
+for the tab, and it carries on from there: at once where the browser allows
+it, otherwise on the guest's first tap or key press anywhere on the page. If
+the guest had paused it, it stays paused at the same place.
 
 In development the Next.js badge is moved to the top-right (`next.config.ts`)
 because its default corner covers the music button. Test sound in Chrome or
@@ -208,6 +218,27 @@ ffmpeg -i original.mp3 -vn -c:a libmp3lame -b:a 128k \
 The `afade` bakes in the fade-in for iPhones, which ignore a website's volume
 changes. The recording is copyrighted: keep the site unlisted (it is already
 `noindex`) and the repository private.
+
+## Add to calendar
+
+Guests can save the ceremony to their own calendar from two places: a link
+under the ceremony in THE DAY, and a button in the RSVP thank-you after a
+"yes". Both open a small menu:
+
+- **Google Calendar** opens Google's new-event screen, pre-filled.
+- **Apple · Outlook · other** opens `/invite/<CODE>/wedding.ics`, a calendar
+  file written at build time for each invitation.
+
+The event starts at `date.startsAt` and lasts `date.ceremonyMinutes` (30) in
+`data/wedding.json`. It is stored in UTC, so each guest sees their own local
+time. Its notes list the ceremony and dinner times and link back to the guest's
+own invitation (`PUBLIC_INVITATION_ORIGIN`). The file carries three reminders:
+one month, one week and one day before. Google's pre-filled screen can't set
+reminders, so those guests get their own calendar's defaults. The title and
+menu labels are under `calendar` in `data/content.json`.
+
+Nothing can be added to a guest's calendar without their tap, and no email
+address is collected.
 
 ## Ceremony livestream
 

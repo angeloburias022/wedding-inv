@@ -9,6 +9,7 @@ import { VenueCard } from "@/components/Place/VenueCard";
 import { RSVP } from "@/components/RSVP/RSVP";
 import { Timeline } from "@/components/Story/Timeline";
 import { Schedule } from "@/components/WeddingDay/Schedule";
+import { googleCalendarUrl, weddingEvent } from "@/lib/calendar";
 import { getGuest, guestDisplayName, guests } from "@/lib/guests";
 import { content, events, story, wedding } from "@/lib/wedding";
 
@@ -26,6 +27,10 @@ export default async function InvitePage({ params }: PageProps<"/invite/[code]">
 
   const displayName = guestDisplayName(guest);
   const { sections } = wedding.settings;
+  const calendar = {
+    google: googleCalendarUrl(weddingEvent(guest.code)),
+    file: `/invite/${guest.code}/wedding.ics`,
+  };
 
   return (
     <main id="top">
@@ -70,11 +75,25 @@ export default async function InvitePage({ params }: PageProps<"/invite/[code]">
         />
         {sections.story && <Timeline entries={story} copy={content.story} />}
         {sections.day && (
-          <Schedule wedding={wedding} events={events} copy={content.day} onlineCopy={content.onlineCeremony} />
+          <Schedule
+            wedding={wedding}
+            events={events}
+            copy={content.day}
+            onlineCopy={content.onlineCeremony}
+            calendarCopy={content.calendar}
+            calendar={calendar}
+          />
         )}
         {sections.place && <VenueCard location={wedding.location} copy={content.place} />}
         {sections.rsvp && (
-          <RSVP code={guest.code} greeting={displayName} names={guest.names} copy={content.rsvp} />
+          <RSVP
+            code={guest.code}
+            greeting={displayName}
+            names={guest.names}
+            copy={content.rsvp}
+            calendarCopy={content.calendar}
+            calendar={calendar}
+          />
         )}
         <Closing
           wedding={wedding}

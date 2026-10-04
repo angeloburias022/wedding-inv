@@ -594,6 +594,20 @@ day were explicitly requested. The envelope screen gets only a quiet,
 non-ticking "131 days to go" line (§4); the generic landing page shows
 this full clock. Not sticky, not in the closing.
 
+Add to calendar (added 2026-10-04): a quiet "Add to calendar" link under
+the ceremony, and the same control as the main button in the RSVP
+thank-you after a "yes" (§10). It opens a two-item menu: Google Calendar
+(Google's new-event screen, pre-filled) and "Apple · Outlook · other" (a
+calendar file, `/invite/CODE/wedding.ics`, prerendered per invitation).
+The event is "Angelo & Gichelle's Wedding", 2:00–2:30 PM Melbourne time
+(`date.startsAt` + `date.ceremonyMinutes`), stored in UTC so every guest
+sees their local time, at the Old Treasury Building address. Its notes
+give the ceremony and dinner times, a line about the livestream, and the
+guest's own invitation link. The file carries reminders one month, one
+week and one day before; Google's pre-filled screen cannot set reminders.
+No email is collected and nothing is added without the guest's tap; a
+real calendar invitation by email was considered and left for later.
+
 The narrative is:
 
 > We get married → we celebrate → we eat together.
@@ -722,6 +736,9 @@ Then:
 SEND RSVP
 ```
 
+After a "yes", the thank-you shows an "Add to calendar" button (added
+2026-10-04, §8).
+
 ## Recommended RSVP data
 
 ### Required
@@ -836,6 +853,7 @@ Example:
     "display": "10 February 2027",
     "iso": "2027-02-10",
     "startsAt": "2027-02-10T14:00:00+11:00",
+    "ceremonyMinutes": 30,
     "timeZone": "Australia/Melbourne"
   },
   "location": {
@@ -1005,7 +1023,8 @@ reminder (`closing.rsvpReminder`, `closing.rsvpReminderCta`), the
 online-ceremony copy (eyebrow,
 jump link, messages before and after the link exists, button, and the
 "Starting soon" / "Live now" / "Watch the replay" / "Open in YouTube"
-labels; see §21), the music button's labels (`music.play`, `music.pause`)
+labels; see §21), the "Add to calendar" labels and event title
+(`calendar.*`, §8), the music button's labels (`music.play`, `music.pause`)
 and the closing's "Back to top" label.
 
 Example:
@@ -1673,10 +1692,14 @@ Suggested values:
     fade should also be baked into the file (README). A small round button
     in the bottom-left corner pauses and resumes it (moving bars while
     playing, a note when paused). The song pauses when the guest leaves the
-    tab (resuming on return), taps into an embedded player (the
-    livestream), or goes Back to the envelope; opening the envelope again
-    restarts it from the top. A reloaded invitation has no tap to start
-    from, so it stays quiet until the button is pressed. Reduced motion
+    tab (resuming on return) or taps into an embedded player (the
+    livestream). Going Back to the envelope keeps it playing, with the
+    button still shown, and opening the envelope again carries on; opening
+    with the song paused starts it from the top (2026-10-04). A reload keeps the song's place (per tab,
+    in `sessionStorage`) and carries on from there: at once where the
+    browser allows sound without a tap, otherwise on the guest's first tap
+    or key press anywhere on the page; a song the guest had paused stays
+    paused (2026-10-04). Reduced motion
     still gets the song. A missing file or `music: null` means silence and
     no button.
 -   Chapter dots: a slim column of dots on the right edge (Story, The
@@ -2240,6 +2263,7 @@ components/
 │
 ├── WeddingDay/
 │   ├── EventCard/
+│   ├── AddToCalendar/
 │   ├── Schedule/
 │   └── LiveStream/
 │
@@ -2284,14 +2308,17 @@ wedding-invitation/
 │   │   └── rsvp.ts           RSVP server action → Google Sheets
 │   └── invite/
 │       └── [code]/
-│           └── page.tsx      one prerendered page per guest
+│           ├── page.tsx      one prerendered page per guest
+│           └── wedding.ics/
+│               └── route.ts  one prerendered calendar file per guest
 │
 ├── components/
 │   ├── Invitation/           Opening, Envelope, InvitationGate,
 │   │                         ScrollHint, ChapterNav, SectionHeader,
 │   │                         Photo, Closing
 │   ├── Story/                Timeline, TimelineEntry, PhotoCarousel
-│   ├── WeddingDay/           Schedule, EventCard, LiveStream
+│   ├── WeddingDay/           Schedule, EventCard, LiveStream,
+│   │                         AddToCalendar
 │   ├── Place/                VenueCard, VenueArch, VenueFilm
 │   ├── Decor/                FloralCorners, Monogram
 │   ├── Music/                Music (the song and its pause button)
@@ -2310,7 +2337,8 @@ wedding-invitation/
 │   ├── wedding.ts            typed content + helpers
 │   ├── guests.ts             guest lookup, validation, display names
 │   ├── photos.ts             photo dimensions at build time → frame shape
-│   └── youtube.ts            video ID from a YouTube link
+│   ├── youtube.ts            video ID from a YouTube link
+│   └── calendar.ts           the ceremony as a calendar event (.ics, Google)
 │
 ├── scripts/
 │   ├── add-guest.mts

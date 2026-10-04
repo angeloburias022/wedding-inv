@@ -1,6 +1,7 @@
 import { SectionHeader } from "@/components/Invitation/SectionHeader";
 import { Reveal } from "@/components/Motion/Reveal";
 import type { Content, Events, Wedding } from "@/lib/wedding";
+import { AddToCalendar, type CalendarLinks } from "./AddToCalendar";
 import { Countdown } from "./Countdown";
 import { EventCard } from "./EventCard";
 import { LiveStream } from "./LiveStream";
@@ -10,6 +11,8 @@ type ScheduleProps = {
   events: Events;
   copy: Content["day"];
   onlineCopy: Content["onlineCeremony"];
+  calendarCopy: Content["calendar"];
+  calendar: CalendarLinks;
 };
 
 /** "2:00 PM Melbourne · 11:00 AM Manila", adding the day wherever it differs from the first zone's. */
@@ -26,7 +29,7 @@ function streamTimes({ startsAt, timeZones }: Wedding["onlineCeremony"]) {
 }
 
 /** THE DAY — ceremony, then dinner & celebration (handoff §8, §21). */
-export function Schedule({ wedding, events, copy, onlineCopy }: ScheduleProps) {
+export function Schedule({ wedding, events, copy, onlineCopy, calendarCopy, calendar }: ScheduleProps) {
   const { onlineCeremony } = wedding;
   const details = [
     ["Dress code", events.details.dressCode],
@@ -50,6 +53,7 @@ export function Schedule({ wedding, events, copy, onlineCopy }: ScheduleProps) {
 
         <Reveal className="flex flex-col items-center gap-6">
           <EventCard event={events.ceremony} emphasis="primary" />
+          <AddToCalendar links={calendar} copy={calendarCopy} emphasis="link" />
           {onlineCeremony.enabled && onlineCeremony.url && (
             <a
               href="#livestream"

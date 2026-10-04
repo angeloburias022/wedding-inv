@@ -8,6 +8,7 @@
     "display": "10 February 2027",
     "iso": "2027-02-10",
     "startsAt": "2027-02-10T14:00:00+11:00",
+    "ceremonyMinutes": 30,
     "timeZone": "Australia/Melbourne"
   },
   "location": {
