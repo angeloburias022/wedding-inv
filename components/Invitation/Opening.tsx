@@ -13,12 +13,14 @@ type OpeningProps = {
   cta: string;
   /** Under the envelope, e.g. "Tap the seal to open". */
   envelopeHint: string;
+  /** Under the hint for returning guests, e.g. "Skip to the invitation". */
+  skip: string;
   signature: string;
   /** Omitted on the generic (non-personalised) landing page. */
   guestName?: string;
   /** Shown instead of the greeting and CTA when there is no guest. */
   fallbackNote?: string;
-  /** Guests get a quiet "131 days to go" line; the generic landing gets the full clock. */
+  /** Guests get a quiet "131 days to go" line on the envelope's card; the generic landing gets the full clock. */
   countdown: {
     startsAt: string;
     timeZone: string;
@@ -44,6 +46,7 @@ export function Opening({
   eyebrow,
   cta,
   envelopeHint,
+  skip,
   signature,
   guestName,
   fallbackNote,
@@ -51,38 +54,44 @@ export function Opening({
 }: OpeningProps) {
   return (
     <header className="relative flex min-h-svh flex-col items-center justify-between px-6 py-12 text-center md:py-16">
-      <div className="flex animate-rise flex-col items-center gap-6" style={rise(0)}>
-        <Monogram preload className="h-16 w-auto md:h-20" />
-        {/* Second in the hierarchy (handoff §4): well above the labels, well below the guest's name. */}
-        <p className="font-display text-2xl leading-tight tracking-[0.14em] text-ink uppercase md:text-3xl">
-          {coupleName}
-        </p>
-        <p className="label text-muted">
-          {date}
-          <span className="mx-2" aria-hidden>
-            ·
-          </span>
-          {city}
-        </p>
-        {guestName && (
-          <DaysToGo
-            startsAt={countdown.startsAt}
-            timeZone={countdown.timeZone}
-            copy={{ ...countdown.copy, daysToGo: countdown.daysToGo, tomorrow: countdown.tomorrow }}
-            className="label -mt-3 text-detail"
-          />
-        )}
-      </div>
+      {guestName ? (
+        // A guest sees only the envelope addressed to them, like a real one: the monogram,
+        // names and date are on the card inside. This empty slot keeps the envelope centred.
+        <span aria-hidden />
+      ) : (
+        <div className="flex animate-rise flex-col items-center gap-6" style={rise(0)}>
+          <Monogram preload className="h-16 w-auto md:h-20" />
+          <p className="font-display text-2xl leading-tight tracking-[0.14em] text-ink uppercase md:text-3xl">
+            {coupleName}
+          </p>
+          <p className="label text-muted">
+            {date}
+            <span className="mx-2" aria-hidden>
+              ·
+            </span>
+            {city}
+          </p>
+        </div>
+      )}
 
       {guestName ? (
-        <div className="animate-rise" style={rise(300, 12, 800)}>
+        <div className="animate-rise" style={rise(0, 12, 800)}>
           <Envelope
             guestName={guestName}
             eyebrow={eyebrow}
             cta={cta}
             hint={envelopeHint}
+            skipLabel={skip}
             coupleName={coupleName}
             date={date}
+            daysToGo={
+              <DaysToGo
+                startsAt={countdown.startsAt}
+                timeZone={countdown.timeZone}
+                copy={{ ...countdown.copy, daysToGo: countdown.daysToGo, tomorrow: countdown.tomorrow }}
+                className="label text-[0.6rem] text-detail"
+              />
+            }
           />
         </div>
       ) : (

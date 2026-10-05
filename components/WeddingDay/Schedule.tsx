@@ -15,17 +15,17 @@ type ScheduleProps = {
   calendar: CalendarLinks;
 };
 
-/** "2:00 PM Melbourne · 11:00 AM Manila", adding the day wherever it differs from the first zone's. */
-function streamTimes({ startsAt, timeZones }: Wedding["onlineCeremony"]) {
+type TimeZones = Wedding["onlineCeremony"]["timeZones"];
+
+/** One per zone: "2:00 PM" in Melbourne, "11:00 AM" in Manila, adding the day wherever it differs from the first zone's. */
+function localTimes(startsAt: string, timeZones: TimeZones) {
   const start = new Date(startsAt);
   const day = (zone: string) => start.toLocaleDateString("en-US", { timeZone: zone, weekday: "short" });
   const firstDay = timeZones[0] && day(timeZones[0].zone);
-  return timeZones
-    .map(({ label, zone }) => {
-      const time = start.toLocaleTimeString("en-US", { timeZone: zone, hour: "numeric", minute: "2-digit" });
-      return `${time}${day(zone) === firstDay ? "" : ` ${day(zone)}`} ${label}`;
-    })
-    .join(" · ");
+  return timeZones.map(({ label, zone }) => {
+    const time = start.toLocaleTimeString("en-US", { timeZone: zone, hour: "numeric", minute: "2-digit" });
+    return { time: `${time}${day(zone) === firstDay ? "" : ` ${day(zone)}`}`, label };
+  });
 }
 
 /** THE DAY — ceremony, then dinner & celebration (handoff §8, §21). */
@@ -52,7 +52,11 @@ export function Schedule({ wedding, events, copy, onlineCopy, calendarCopy, cale
         </Reveal>
 
         <Reveal className="flex flex-col items-center gap-6">
-          <EventCard event={events.ceremony} emphasis="primary" />
+          <EventCard
+            event={events.ceremony}
+            emphasis="primary"
+            times={localTimes(wedding.date.startsAt, onlineCeremony.timeZones)}
+          />
           <AddToCalendar links={calendar} copy={calendarCopy} emphasis="link" />
           {onlineCeremony.enabled && onlineCeremony.url && (
             <a
@@ -80,7 +84,11 @@ export function Schedule({ wedding, events, copy, onlineCopy, calendarCopy, cale
               <p className="font-display text-2xl leading-snug text-balance italic">
                 {onlineCeremony.url ? onlineCopy.liveMessage : onlineCopy.message}
               </p>
-              <p className="label text-ink">{streamTimes(onlineCeremony)}</p>
+              <p className="label text-ink">
+                {localTimes(onlineCeremony.startsAt, onlineCeremony.timeZones)
+                  .map(({ time, label }) => `${time} ${label}`)
+                  .join(" · ")}
+              </p>
               {onlineCeremony.url && (
                 <div className="mt-2 flex w-full justify-center">
                   <LiveStream url={onlineCeremony.url} startsAt={onlineCeremony.startsAt} copy={onlineCopy} />

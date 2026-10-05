@@ -89,7 +89,8 @@ export function startMusic() {
     () => {
       const start = performance.now();
       const step = (now: number) => {
-        const progress = Math.min((now - start) / FADE_IN_MS, 1);
+        // A frame's timestamp can be slightly earlier than `start`; a negative volume throws.
+        const progress = Math.min(Math.max((now - start) / FADE_IN_MS, 0), 1);
         audio.volume = VOLUME * progress;
         if (progress < 1) fadeFrame = requestAnimationFrame(step);
       };
@@ -98,6 +99,11 @@ export function startMusic() {
     // No file yet, or the browser refused: the invitation opens in silence.
     () => {},
   );
+}
+
+/** For a guest who skips the envelope: no song, and no picking up an earlier one, until they press the button. */
+export function stayQuiet() {
+  hasOpened = true;
 }
 
 function toggleMusic() {

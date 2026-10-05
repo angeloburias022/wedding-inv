@@ -1,10 +1,10 @@
 "use client";
 
 import { animate as animateElement, useAnimate } from "motion/react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Monogram } from "@/components/Decor/Monogram";
-import { startMusic } from "@/components/Music/Music";
-import { useOpenInvitation } from "./InvitationGate";
+import { startMusic, stayQuiet } from "@/components/Music/Music";
+import { useOpenInvitation, useOpenedBefore } from "./InvitationGate";
 
 type EnvelopeProps = {
   guestName: string;
@@ -12,8 +12,12 @@ type EnvelopeProps = {
   /** Accessible name of the seal button, e.g. "Open invitation". */
   cta: string;
   hint: string;
+  /** Shown to returning guests under the hint, e.g. "Skip to the invitation". */
+  skipLabel: string;
   coupleName: string;
   date: string;
+  /** The quiet "131 days to go" line, shown on the card under the date. */
+  daysToGo: React.ReactNode;
 };
 
 /** A wax seal's slightly uneven edge: a circle whose radius wobbles a little. */
@@ -33,14 +37,26 @@ const FLAP_DEPTH = 46;
  * to fill the screen and dissolves into the story, one continuous shot.
  * Reduced motion skips straight to the invitation.
  */
-export function Envelope({ guestName, eyebrow, cta, hint, coupleName, date }: EnvelopeProps) {
+export function Envelope({ guestName, eyebrow, cta, hint, skipLabel, coupleName, date, daysToGo }: EnvelopeProps) {
   const openInvitation = useOpenInvitation();
+  const openedBefore = useOpenedBefore();
   const [scope, animate] = useAnimate<HTMLDivElement>();
   const opening = useRef(false);
+  // Hides the skip link once the envelope is on its way open.
+  const [leaving, setLeaving] = useState(false);
+
+  /** For returning guests: straight in, with no animation and no song. */
+  const skip = () => {
+    if (opening.current) return;
+    opening.current = true;
+    stayQuiet();
+    openInvitation({ seamless: true });
+  };
 
   const open = async () => {
     if (opening.current) return;
     opening.current = true;
+    setLeaving(true);
     // Must happen inside the tap itself, or the browser blocks the sound.
     startMusic();
     // A light tick where supported (Android); iPhones don't let websites vibrate.
@@ -81,6 +97,7 @@ export function Envelope({ guestName, eyebrow, cta, hint, coupleName, date }: En
           <Monogram className="h-[11cqw] w-auto" />
           <p className="font-display text-base tracking-[0.14em] text-ink uppercase md:text-lg">{coupleName}</p>
           <p className="label text-[0.6rem] text-muted">{date}</p>
+          {daysToGo}
         </div>
 
         {/* Front pocket: everything but the top V, with faint fold lines. */}
@@ -135,9 +152,23 @@ export function Envelope({ guestName, eyebrow, cta, hint, coupleName, date }: En
         </button>
       </div>
 
-      <button type="button" onClick={open} className="label min-h-11 text-muted transition-colors hover:text-accent">
-        {hint}
-      </button>
+      <div className="flex flex-col items-center">
+        <button type="button" onClick={open} className="label min-h-11 text-muted transition-colors hover:text-accent">
+          {hint}
+        </button>
+        {/* Returning guests only. The space is always kept, so the envelope doesn't shift when the link appears. */}
+        <div className="flex min-h-11 items-center">
+          {openedBefore && !leaving && (
+            <button
+              type="button"
+              onClick={skip}
+              className="min-h-11 text-sm text-muted underline decoration-line underline-offset-4 transition-colors hover:text-accent hover:decoration-accent"
+            >
+              {skipLabel} →
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

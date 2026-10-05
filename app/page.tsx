@@ -12,6 +12,7 @@ export default function Home() {
         eyebrow={content.opening.eyebrow}
         cta={content.opening.cta}
         envelopeHint={content.opening.envelopeHint}
+        skip={content.opening.skip}
         signature={content.opening.signature}
         fallbackNote="Please scan the QR code on your invitation, or open the link we sent you."
         countdown={{

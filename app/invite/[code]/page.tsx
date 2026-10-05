@@ -50,6 +50,7 @@ export default async function InvitePage({ params }: PageProps<"/invite/[code]">
             eyebrow={content.opening.eyebrow}
             cta={content.opening.cta}
             envelopeHint={content.opening.envelopeHint}
+            skip={content.opening.skip}
             signature={content.opening.signature}
             guestName={displayName}
             countdown={{

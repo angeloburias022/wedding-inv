@@ -150,7 +150,19 @@ secondary) → RSVP → Closing. One continuous vertical scroll.
   Seconds at Angelo's request (earlier advice was days only). The envelope
   screen gets a quiet, non-ticking "131 days to go" line under the date
   instead of the clock; the generic landing page shows the full clock.
-  Not sticky.
+  Not sticky. Since 2026-10-06 that line is on the card inside the
+  envelope, not above it.
+- **Returning guests can skip the envelope** (2026-10-06): a guest coming
+  back to check the time shouldn't have to sit through the opening and the
+  song again. After the first open, the envelope shows a "Skip to the
+  invitation →" link: straight in, no animation, no song. Chosen over
+  opening automatically for returning guests (the envelope would be gone
+  after one visit), a skip link for everyone (invites skipping the best
+  moment unseen) and a faster animation (still a wait, still the song).
+- **Envelope-only first screen** (2026-10-06): a guest's first screen shows
+  just the envelope addressed to them. The monogram, names, date and days
+  line are on the card inside, so nothing is said twice and opening it is
+  a reveal.
 - **Add to calendar, not email** (2026-10-04): guests save the ceremony
   themselves from a button (Google Calendar, or a calendar file for Apple,
   Outlook and others). Nothing can be written to a guest's calendar without
@@ -520,3 +532,49 @@ then connect the real Google Sheet and deploy to Vercel.
   phone size. Not yet opened in a real Google, Apple or Outlook calendar.
 - Considered and declined: disabling the Back button. Parked: the hidden
   "Under the paper" specs card (see open questions).
+
+### 2026-10-06
+
+- "Add to calendar" menu restyled at Angelo's request: each option now has
+  a one-line hint (`calendar.googleHint`, `calendar.fileHint`) saying what
+  it does, an arrow (↗ opens elsewhere, ↓ downloads), a fixed width,
+  a soft shadow and a short fade. Checked in headless Chrome at phone size
+  in both placements.
+- Bug found while checking, in the song's fade-in: the first animation
+  frame's timestamp can be a fraction earlier than the recorded start,
+  which made the volume slightly negative. The browser rejects that with
+  an error, the fade stopped, and the song stayed at volume 0, playing but
+  silent. It happened only occasionally. Fixed by clamping the fade to
+  0–1. This may also explain an earlier "not playing" report.
+- Angelo noticed the opening repeated itself: when the card slid out of the
+  envelope, its monogram, names and date sat directly under the same three
+  things in the heading. The heading (monogram, names, date, days to go)
+  now fades out over 0.6s as the seal is tapped, so the card is the only
+  place they appear. It also stops the card overlapping the "days to go"
+  line. After Back the heading is there again. Checked in headless Chrome
+  at phone size. Reduced motion is unaffected (it skips the animation).
+- Then, at Angelo's suggestion, the heading was removed from the guest's
+  first screen altogether (replacing the fade above): a guest sees only
+  the envelope addressed to them, the "Tap the seal to open" hint and the
+  signature. The monogram, names, date and the "days to go" line now live
+  only on the card that slides out. Trade-off accepted: the date isn't
+  visible until the envelope is opened. The generic landing page keeps its
+  heading and clock. Checked in headless Chrome at 430×900 and 375×667
+  (envelope centred, the longest sample name on one line) and with the
+  card out (all four lines visible above the pocket).
+- Ceremony time now shown in Melbourne and Philippine time side by side
+  at the same size (Angelo's request; a first version with Manila as a
+  small line under 2:00 PM was replaced): "2:00 PM / Melbourne" and
+  "11:00 AM / Manila" with a hairline between. The size scales with the
+  screen so both fit on one line on a phone. Worked out from
+  `date.startsAt` and the zones in `onlineCeremony.timeZones`, the same
+  list the livestream card uses. Ceremony only; the dinner keeps a single
+  time since it is in person. Checked in headless Chrome at 430, 375, 320
+  and 1280 px wide: no overflow at any of them.
+- Skip link for returning guests built: the gate remembers an opened
+  invitation in `localStorage` (`useOpenedBefore`), the envelope shows
+  the link under the hint, and `stayQuiet` keeps the song off. New
+  `opening.skip` copy. Tested in headless Chrome: no link on a first
+  visit; link on a fresh return visit; skip lands at the top with the song
+  paused and the music button working; link still there after Back; the
+  seal on a return visit gives the full opening with the song.

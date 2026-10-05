@@ -19,8 +19,9 @@ type AddToCalendarProps = {
 
 /**
  * "Add to calendar": a small menu with Google Calendar (opens pre-filled) and
- * a calendar file for everything else. The date goes into the guest's own
- * calendar, in their own time zone, with a link back to their invitation.
+ * a calendar file for everything else, each with a line saying what it does.
+ * The date goes into the guest's own calendar, in their own time zone, with a
+ * link back to their invitation.
  */
 export function AddToCalendar({ links, copy, emphasis }: AddToCalendarProps) {
   const [open, setOpen] = useState(false);
@@ -43,8 +44,10 @@ export function AddToCalendar({ links, copy, emphasis }: AddToCalendarProps) {
     };
   }, [open]);
 
-  const itemClass =
-    "label flex min-h-12 items-center justify-center px-6 text-ink transition-colors hover:text-accent focus-visible:text-accent";
+  const choices = [
+    { href: links.google, label: copy.google, hint: copy.googleHint, arrow: "↗", newTab: true },
+    { href: links.file, label: copy.file, hint: copy.fileHint, arrow: "↓", newTab: false },
+  ];
 
   return (
     <div ref={wrapper} className="relative flex flex-col items-center">
@@ -61,17 +64,31 @@ export function AddToCalendar({ links, copy, emphasis }: AddToCalendarProps) {
       >
         {copy.cta}
       </button>
+      {/* Stays in the page so it can fade; `inert` keeps it out of reach while closed. */}
       <div
         id={menuId}
-        hidden={!open}
-        className="absolute top-full z-10 mt-3 flex w-max flex-col divide-y divide-line border border-line bg-surface shadow-sm"
+        inert={!open}
+        className={`absolute top-full z-10 mt-4 flex w-[min(21rem,calc(100vw-3rem))] flex-col divide-y divide-line border border-line bg-surface text-left shadow-[0_12px_32px_-16px_rgb(36_34_32/0.35)] transition duration-200 ease-out motion-reduce:transition-none ${
+          open ? "opacity-100" : "invisible -translate-y-1 opacity-0"
+        }`}
       >
-        <a href={links.google} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)} className={itemClass}>
-          {copy.google}
-        </a>
-        <a href={links.file} onClick={() => setOpen(false)} className={itemClass}>
-          {copy.file}
-        </a>
+        {choices.map(({ href, label, hint, arrow, newTab }) => (
+          <a
+            key={label}
+            href={href}
+            {...(newTab && { target: "_blank", rel: "noopener noreferrer" })}
+            onClick={() => setOpen(false)}
+            className="group flex items-start justify-between gap-4 px-5 py-4 transition-colors hover:bg-background focus-visible:bg-background focus-visible:-outline-offset-2"
+          >
+            <span className="flex flex-col gap-1.5">
+              <span className="label text-ink transition-colors group-hover:text-accent">{label}</span>
+              <span className="text-sm leading-snug text-muted">{hint}</span>
+            </span>
+            <span aria-hidden className="w-4 text-center text-base leading-none text-detail">
+              {arrow}
+            </span>
+          </a>
+        ))}
       </div>
     </div>
   );

@@ -3,6 +3,7 @@
     "eyebrow": "With love, for",
     "cta": "Open invitation",
     "envelopeHint": "Tap the seal to open",
+    "skip": "Skip to the invitation",
     "signature": "Designed & built by Angelo",
     "scrollHint": "Scroll",
     "daysToGo": "days to go",
@@ -59,7 +60,9 @@
   "calendar": {
     "cta": "Add to calendar",
     "google": "Google Calendar",
+    "googleHint": "Opens with the date already filled in.",
     "file": "Apple · Outlook · other",
+    "fileHint": "Adds it to your calendar app. On a computer, open the file that downloads.",
     "eventTitle": "Angelo & Gichelle's Wedding",
     "livestreamNote": "Watching from home? The livestream is on your invitation.",
     "invitationLabel": "Your invitation"

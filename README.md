@@ -42,7 +42,7 @@ npm run generate:qrs  # QR codes + print sheet → print/ (git-ignored)
 | `components/Place/VenueArch.tsx` | Venue photo revealed through an opening arch |
 | `components/Place/VenueFilm.tsx` | Scroll-driven venue clip (used when `location.video` is set) |
 | `components/Story/PhotoCarousel.tsx` | Swipeable photos when a story entry has several |
-| `components/Invitation/Envelope.tsx` | The guest's opening: sealed envelope that opens into the invitation |
+| `components/Invitation/Envelope.tsx` | The guest's opening: sealed envelope that opens into the invitation; returning guests also get a "Skip to the invitation" link |
 | `components/Music/Music.tsx` | The song: starts on the seal tap, with a pause button bottom-left |
 | `components/Invitation/ChapterNav.tsx` | Chapter dots on the right edge: progress and jump to a section |
 | `components/RSVP/RsvpReminder.tsx` | Closing reminder until the guest has replied (remembered in `components/RSVP/replied.ts`) |
@@ -51,7 +51,7 @@ npm run generate:qrs  # QR codes + print sheet → print/ (git-ignored)
 | `lib/calendar.ts` | The ceremony as a calendar event: Google link and `.ics` file |
 | `app/invite/[code]/wedding.ics/route.ts` | One calendar file per invitation, written at build time |
 | `components/WeddingDay/Countdown.tsx` | Days · hours · minutes · seconds to the ceremony (`date.startsAt`) |
-| `components/WeddingDay/DaysToGo.tsx` | Quiet "131 days to go" line on the envelope screen (`lib/days.ts` helpers) |
+| `components/WeddingDay/DaysToGo.tsx` | Quiet "131 days to go" line on the card inside the envelope (`lib/days.ts` helpers) |
 | `components/WeddingDay/LiveStream.tsx` | Ceremony livestream: YouTube link, then embedded player on the day |
 | `lib/youtube.ts` | Video ID from a YouTube link, for the embedded player |
 | `lib/photos.ts` | Reads photo dimensions at build time so frames fit each photo |

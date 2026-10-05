@@ -12,6 +12,7 @@ const OpenInvitationContext = createContext<(options?: OpenOptions) => void>(() 
 
 const HISTORY_KEY = "invitationOpen";
 const SCROLL_KEY = "invitationScroll";
+const OPENED_KEY = "invitationOpened";
 
 function isOpenEntry() {
   return window.history.state?.[HISTORY_KEY] === true;
@@ -41,6 +42,23 @@ let seamlessOpen = false;
 if (typeof window !== "undefined") {
   // We restore the scroll ourselves once the content is rendered.
   window.history.scrollRestoration = "manual";
+}
+
+// Remembered on this device, so a guest coming back another day can skip the envelope.
+function wasOpenedBefore() {
+  try {
+    return localStorage.getItem(`${OPENED_KEY}:${location.pathname}`) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function rememberOpened() {
+  try {
+    localStorage.setItem(`${OPENED_KEY}:${location.pathname}`, "1");
+  } catch {
+    // Storage can be unavailable (private mode); the guest just opens the envelope again next time.
+  }
 }
 
 function readSavedScroll() {
@@ -79,6 +97,7 @@ export function InvitationGate({ opening, children }: InvitationGateProps) {
     }
     openedByTap = true;
     seamlessOpen = Boolean(options?.seamless);
+    rememberOpened();
     listeners.forEach((notify) => notify());
   };
 
@@ -166,6 +185,11 @@ function OpenedContent({ children }: { children: React.ReactNode }) {
 /** Whether the invitation is open, for anything living outside the gate (the music). */
 export function useInvitationOpen() {
   return useSyncExternalStore(subscribe, isOpenEntry, getServerSnapshot);
+}
+
+/** Whether this guest has opened their invitation on this device before (the envelope offers a way past it). */
+export function useOpenedBefore() {
+  return useSyncExternalStore(subscribe, wasOpenedBefore, getServerSnapshot);
 }
 
 /** Opens the invitation from inside the opening (the envelope's seal). */

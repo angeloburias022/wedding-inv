@@ -216,13 +216,6 @@ Composition (as built 2026-10-01, the guest's opening is a sealed
 envelope addressed to them):
 
 ``` text
-                     [ monogram ]
-
-                  ANGELO & GICHELLE
-
-             10 FEBRUARY 2027 · MELBOURNE
-                   131 DAYS TO GO
-
           ┌──────────────────────────────────┐
           │ ╲                              ╱ │
           │    ╲                        ╱    │
@@ -235,6 +228,13 @@ envelope addressed to them):
 
               Designed & built by Angelo
 ```
+
+Since 2026-10-06 the envelope is the only thing on the guest's first
+screen, like a real one: who it is for, and nothing else. The monogram,
+the couple's names, the date and the days line used to sit above it and
+were then repeated by the card; they now appear only on the card that
+slides out (monogram, names, date, "131 days to go"). The seal's monogram
+says who it is from.
 
 The envelope mirrors the printed 5×7 card's envelope ("one invitation,
 two mediums"). It is drawn in code from the theme tokens, so it follows
@@ -250,14 +250,22 @@ artwork in gold (§4.3; since 2026-10-03, before that "A&G" in text).
     the seal (or the hint under the envelope) lifts the seal, folds the
     flap back, slides out the card (monogram, couple names, date), then
     opens the invitation (§20). No extra step.
+-   Returning guests (added 2026-10-06): once an invitation has been
+    opened on a device, later visits show a quiet "Skip to the
+    invitation →" link under the hint. It goes straight in, at the top,
+    with no animation and no song (the music button is there). The seal
+    still gives the full opening. First-time guests never see the link,
+    and its space is always reserved so the envelope doesn't shift.
+    Remembered per invitation in the browser's `localStorage`; nothing is
+    sent anywhere.
 -   The same tap starts the song (added 2026-10-03, §20). There is no
     music prompt or autoplay: browsers only allow sound from a tap, and
     the seal is that tap.
 -   The guest's name is real text on the envelope (an `h1`), in the
     first server-rendered HTML, sized to the envelope so long names
     ("The Santos Family") fit.
--   Under the date, a quiet days line (added 2026-10-02) in small brass
-    caps: "131 days to go" → "Tomorrow" → "Today is the day" → "Happily
+-   On the card, under the date, a quiet days line (added 2026-10-02,
+    moved onto the card 2026-10-06) in small brass caps: "131 days to go" → "Tomorrow" → "Today is the day" → "Happily
     married". Calendar days in Melbourne time; it doesn't tick, so it never
     pulls attention from the seal. The full ticking clock lives in THE DAY
     (§8).
@@ -593,6 +601,14 @@ day, then "Happily married". Seconds and keeping the clock visible on the
 day were explicitly requested. The envelope screen gets only a quiet,
 non-ticking "131 days to go" line (§4); the generic landing page shows
 this full clock. Not sticky, not in the closing.
+
+Two time zones (added 2026-10-06): the ceremony's time is shown twice
+at equal size, side by side with a hairline between, "2:00 PM" over
+"Melbourne" and "11:00 AM" over "Manila", for family in the Philippines.
+The type scales with the screen so both fit on one line on a phone.
+Computed from `date.startsAt` and the zones in
+`onlineCeremony.timeZones` (the first is the home zone). The dinner shows
+Melbourne time only.
 
 Add to calendar (added 2026-10-04): a quiet "Add to calendar" link under
 the ceremony, and the same control as the main button in the RSVP
@@ -1018,7 +1034,8 @@ hidden.
 Editorial copy should be separate from component code. Copy is written in
 sentence case; the uppercase look comes from CSS. The real file also holds the
 RSVP labels and thank-you messages, the envelope hint and scroll hint
-(`opening.envelopeHint`, `opening.scrollHint`), the closing's RSVP
+(`opening.envelopeHint`, `opening.scrollHint`), the returning guest's skip
+link (`opening.skip`), the closing's RSVP
 reminder (`closing.rsvpReminder`, `closing.rsvpReminderCta`), the
 online-ceremony copy (eyebrow,
 jump link, messages before and after the link exists, button, and the
