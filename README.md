@@ -59,7 +59,7 @@ npm run generate:qrs  # QR codes + print sheet → print/ (git-ignored)
 | `public/decor/` | Decorative artwork (floral corners) |
 | `scripts/qr-card-template.png`, `scripts/qr-card-monogram.png` | Card design and monogram the per-guest QR cards are built from |
 | `background-flowers.png` | Source mockup the floral corners are cropped from |
-| `docs/` | Product/design spec (handoff) and running project context |
+| `docs/` | Product/design spec (handoff), running project context, and `PARKED-FEATURES.md` (features agreed for later) |
 | `scripts/add-guest.mts` | Adds a guest with a new random code |
 | `scripts/remove-guest.mts` | Removes a guest by code |
 | `scripts/generate-qrs.mts` | QR generator (handoff §18) |

@@ -8,6 +8,9 @@ The full product/design/architecture spec lives next to this file in
 `docs/angelo-gichelle-wedding-invitation-handoff.md` (the "handoff"). This file
 summarises it and records what has happened since.
 
+Features agreed or discussed but not built yet are listed in
+`docs/PARKED-FEATURES.md`.
+
 ------------------------------------------------------------------------
 
 ## Project snapshot
@@ -257,15 +260,9 @@ then connect the real Google Sheet and deploy to Vercel.
 - Domain registration
 - Guest list and invitation codes
 - Where the theme switcher lives (currently only in the closing)
-- "Under the paper" (parked 2026-10-04, build only when Angelo says go): a
-  hidden specs card at the end of the invitation, opened from the
-  "Designed & built by Angelo" signature in the closing. In the
-  invitation's own type, never a terminal look. Proposed lines: stack and
-  versions, how the page is delivered and its load time, commit and build
-  date, days in the making, the song and its position, the theme, the
-  countdown, and a closing "with love, for Gichelle". Nothing about the
-  guest (no code, name or device) and no guest or RSVP counts. Kept hidden
-  to respect handoff §5 (no technical metadata on show)
+- Parked features (the PDF invitation, the hidden "Under the paper" card,
+  email invitations and reminders, `/admin`, and smaller options) now live
+  in `docs/PARKED-FEATURES.md`
 - Whether to show an RSVP deadline
 
 ------------------------------------------------------------------------
@@ -612,3 +609,12 @@ then connect the real Google Sheet and deploy to Vercel.
   The spacing was then evened out: logo, names, date, countdown and note
   form one group, centred on the page, in place of a heading pinned to
   the top with a wide gap below it. Checked at phone and desktop size.
+
+### 2026-10-07
+
+- Discussed a downloadable PDF of the invitation. Decided on one page per
+  guest, to be built once the invitation is finished, so the design is
+  drawn once.
+- Created `docs/PARKED-FEATURES.md` at Angelo's request: every feature
+  agreed for later or offered and not decided, with what each is waiting
+  for. The parked items that were under "Open questions" here moved there.
