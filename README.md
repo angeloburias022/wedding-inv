@@ -199,6 +199,12 @@ where in the song it starts: `startAt` when the envelope is opened, and
 `skipStartAt` for a returning guest who taps "Skip to the wedding day". It is
 set to `48`, so a skip starts the song at 0:48 every time.
 
+The generic landing page (the bare domain, no envelope) plays the song too,
+from `music.landingStartAt` (`64`, so 1:04). With no seal to tap, most browsers
+won't start it on arrival; it begins on the visitor's first tap or key press
+anywhere on the page, and the music button is always shown there. A visitor
+who paused it last time is left in peace.
+
 A returning guest who skips gets the song only if they left it playing on
 their last visit; if they had paused it, the invitation stays quiet. That
 choice is remembered on their device.

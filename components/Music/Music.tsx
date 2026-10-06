@@ -1,15 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useInvitationOpen } from "@/components/Invitation/InvitationGate";
 import type { Content } from "@/lib/wedding";
 
 type MusicProps = {
   src: string;
   /** Seconds into the song where it starts when the envelope opens. */
-  startAt: number;
+  startAt?: number;
   /** Seconds into the song where it starts for a returning guest who skips the envelope. */
-  skipStartAt: number;
+  skipStartAt?: number;
+  /**
+   * For a page with no envelope (the generic landing): start the song here, in
+   * seconds, as soon as the browser allows, and always show the button.
+   */
+  autoStartAt?: number;
   /** Shown as the button's tooltip, e.g. "Risk It All · Bruno Mars". */
   title: string;
   copy: Content["music"];
@@ -73,6 +78,22 @@ function readPlayback(): Saved | null {
 }
 
 /**
+ * Runs once on the guest's next tap or key press anywhere on the page: the
+ * moment a browser that refused the sound will allow it. A tap on the music
+ * button is left alone, since the button does its own toggling.
+ */
+function onNextGesture(run: () => void) {
+  const onGesture = (event: Event) => {
+    document.removeEventListener("pointerup", onGesture, true);
+    document.removeEventListener("keydown", onGesture, true);
+    if ((event.target as Element | null)?.closest?.("[data-music-button]")) return;
+    run();
+  };
+  document.addEventListener("pointerup", onGesture, true);
+  document.addEventListener("keydown", onGesture, true);
+}
+
+/**
  * After a reload: back to where the song was and, if it was playing, on again.
  * A reload has no tap, so most browsers refuse the sound; the song then
  * resumes with the guest's first tap or key press anywhere on the page.
@@ -83,17 +104,11 @@ function pickUpAfterReload(audio: HTMLAudioElement, saved: Saved) {
     if (!saved.playing) return;
     wanted = true;
     audio.volume = VOLUME;
-    audio.play().catch(() => {
-      const onGesture = (event: Event) => {
-        document.removeEventListener("pointerup", onGesture, true);
-        document.removeEventListener("keydown", onGesture, true);
-        // The music button does its own toggling.
-        if ((event.target as Element | null)?.closest?.("[data-music-button]")) return;
+    audio.play().catch(() =>
+      onNextGesture(() => {
         if (wanted && audio.paused) audio.play().catch(() => {});
-      };
-      document.addEventListener("pointerup", onGesture, true);
-      document.addEventListener("keydown", onGesture, true);
-    });
+      }),
+    );
   };
   if (audio.readyState >= HTMLMediaElement.HAVE_METADATA) resume();
   else audio.addEventListener("loadedmetadata", resume, { once: true });
@@ -106,7 +121,8 @@ function pickUpAfterReload(audio: HTMLAudioElement, saved: Saved) {
  * A song already playing (the guest came Back to the envelope) just carries on.
  */
 export function startMusic() {
-  if (player) playFrom(player, Number(player.dataset.startAt) || 0);
+  // No file yet, or the browser refused: the invitation opens in silence.
+  if (player) playFrom(player, Number(player.dataset.startAt) || 0).catch(() => {});
 }
 
 /**
@@ -116,31 +132,46 @@ export function startMusic() {
  */
 export function startMusicOnSkip() {
   hasOpened = true;
-  if (player && !choseQuiet()) playFrom(player, Number(player.dataset.skipStartAt) || 0);
+  if (player && !choseQuiet()) playFrom(player, Number(player.dataset.skipStartAt) || 0).catch(() => {});
 }
 
-function playFrom(audio: HTMLAudioElement, seconds: number) {
-  if (!audio.paused) return;
+/**
+ * A page with no envelope has no tap to start from, so most browsers refuse
+ * the sound on arrival; the song then starts with the visitor's first tap or
+ * key press anywhere. A visitor who paused it last time is left in peace.
+ */
+function startWhenAllowed(audio: HTMLAudioElement, seconds: number) {
+  if (choseQuiet()) {
+    // Still cued, so the button plays from the same point.
+    audio.currentTime = seconds;
+    return;
+  }
+  playFrom(audio, seconds).catch(() =>
+    onNextGesture(() => {
+      if (wanted && audio.paused) playFrom(audio, seconds).catch(() => {});
+    }),
+  );
+}
+
+/** Plays from that point in the song, fading in; the promise rejects if the browser refuses. */
+function playFrom(audio: HTMLAudioElement, seconds: number): Promise<void> {
+  if (!audio.paused) return Promise.resolve();
   rememberChoice(true);
   // Opening the envelope with the song paused is a fresh start, not a resume.
   audio.currentTime = seconds;
   audio.volume = 0;
-  audio.play().then(
-    () => {
-      // Some phones ignore a position set before the song has loaded; set it again once it plays.
-      if (audio.currentTime < seconds - 1) audio.currentTime = seconds;
-      const start = performance.now();
-      const step = (now: number) => {
-        // A frame's timestamp can be slightly earlier than `start`; a negative volume throws.
-        const progress = Math.min(Math.max((now - start) / FADE_IN_MS, 0), 1);
-        audio.volume = VOLUME * progress;
-        if (progress < 1) fadeFrame = requestAnimationFrame(step);
-      };
-      fadeFrame = requestAnimationFrame(step);
-    },
-    // No file yet, or the browser refused: the invitation opens in silence.
-    () => {},
-  );
+  return audio.play().then(() => {
+    // Some phones ignore a position set before the song has loaded; set it again once it plays.
+    if (audio.currentTime < seconds - 1) audio.currentTime = seconds;
+    const start = performance.now();
+    const step = (now: number) => {
+      // A frame's timestamp can be slightly earlier than `start`; a negative volume throws.
+      const progress = Math.min(Math.max((now - start) / FADE_IN_MS, 0), 1);
+      audio.volume = VOLUME * progress;
+      if (progress < 1) fadeFrame = requestAnimationFrame(step);
+    };
+    fadeFrame = requestAnimationFrame(step);
+  });
 }
 
 function toggleMusic() {
@@ -166,10 +197,18 @@ function toggleMusic() {
  * where it permits sound without a tap, otherwise on the guest's next tap.
  * Lives outside the gate so the song carries from the envelope into the story.
  */
-export function Music({ src, startAt, skipStartAt, title, copy }: MusicProps) {
+export function Music({ src, startAt = 0, skipStartAt = 0, autoStartAt, title, copy }: MusicProps) {
   const open = useInvitationOpen();
   const [playing, setPlaying] = useState(false);
   const [failed, setFailed] = useState(false);
+  const autoStarted = useRef(false);
+
+  // No envelope on this page: start by ourselves, once.
+  useEffect(() => {
+    if (autoStartAt === undefined || autoStarted.current || !player) return;
+    autoStarted.current = true;
+    startWhenAllowed(player, autoStartAt);
+  }, [autoStartAt]);
 
   useEffect(() => {
     if (!open || hasOpened) return;
@@ -226,7 +265,7 @@ export function Music({ src, startAt, skipStartAt, title, copy }: MusicProps) {
         onError={() => setFailed(true)}
       />
       {/* Hidden while the envelope first opens; back on the envelope it stays while the song plays. */}
-      {(open || (playing && hasOpened)) && !failed && (
+      {(autoStartAt !== undefined || open || (playing && hasOpened)) && !failed && (
         <button
           type="button"
           data-music-button

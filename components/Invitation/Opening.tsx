@@ -54,27 +54,12 @@ export function Opening({
 }: OpeningProps) {
   return (
     <header className="relative flex min-h-svh flex-col items-center justify-between px-6 py-12 text-center md:py-16">
-      {guestName ? (
-        // A guest sees only the envelope addressed to them, like a real one: the monogram,
-        // names and date are on the card inside. This empty slot keeps the envelope centred.
-        <span aria-hidden />
-      ) : (
-        <div className="flex animate-rise flex-col items-center gap-6" style={rise(0)}>
-          <Monogram preload className="h-16 w-auto md:h-20" />
-          <p className="font-display text-2xl leading-tight tracking-[0.14em] text-ink uppercase md:text-3xl">
-            {coupleName}
-          </p>
-          <p className="label text-muted">
-            {date}
-            <span className="mx-2" aria-hidden>
-              ·
-            </span>
-            {city}
-          </p>
-        </div>
-      )}
+      {/* Empty, so the block below sits centred between the top and the signature. */}
+      <span aria-hidden />
 
       {guestName ? (
+        // A guest sees only the envelope addressed to them, like a real one: the monogram,
+        // names and date are on the card inside.
         <div className="animate-rise" style={rise(0, 12, 800)}>
           <Envelope
             guestName={guestName}
@@ -95,13 +80,23 @@ export function Opening({
           />
         </div>
       ) : (
-        <div className="flex max-w-md animate-rise flex-col items-center gap-6" style={rise(200, 12)}>
-          <h1 className="font-display text-5xl leading-none font-normal tracking-[-0.02em] uppercase md:text-7xl">
-            {coupleName}
-          </h1>
-          <div className="py-4">
-            <Countdown startsAt={countdown.startsAt} timeZone={countdown.timeZone} copy={countdown.copy} />
+        // No guest: one centred group, heading then countdown then the note.
+        <div className="flex max-w-md animate-rise flex-col items-center gap-12" style={rise(0, 12)}>
+          <div className="flex flex-col items-center gap-6">
+            <Monogram preload className="h-16 w-auto md:h-20" />
+            {/* The page's one heading; the names aren't repeated below. */}
+            <h1 className="font-display text-2xl leading-tight font-normal tracking-[0.14em] text-ink uppercase md:text-3xl">
+              {coupleName}
+            </h1>
+            <p className="label text-muted">
+              {date}
+              <span className="mx-2" aria-hidden>
+                ·
+              </span>
+              {city}
+            </p>
           </div>
+          <Countdown startsAt={countdown.startsAt} timeZone={countdown.timeZone} copy={countdown.copy} />
           {fallbackNote && <p className="font-display text-xl text-muted italic">{fallbackNote}</p>}
         </div>
       )}

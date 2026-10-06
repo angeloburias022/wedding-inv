@@ -54,6 +54,8 @@ export type Wedding = {
     startAt: number;
     /** Seconds into the song where it starts for a returning guest who skips the envelope. */
     skipStartAt: number;
+    /** Seconds into the song where it starts on the generic landing page (no envelope there). */
+    landingStartAt: number;
   } | null;
   settings: {
     theme: ThemeName;

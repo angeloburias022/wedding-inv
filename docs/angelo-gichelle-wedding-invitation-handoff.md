@@ -901,7 +901,8 @@ Example:
     "title": "Risk It All",
     "artist": "Bruno Mars",
     "startAt": 0,
-    "skipStartAt": 48
+    "skipStartAt": 48,
+    "landingStartAt": 64
   },
   "settings": {
     "theme": "heritage",
@@ -919,7 +920,10 @@ Example:
 `src` is a file in `public/audio/`, and `title` and `artist` make the
 music button's tooltip. `startAt` and `skipStartAt` (seconds; added
 2026-10-06) are where in the song it starts when the envelope is opened
-and when a returning guest skips it. `null` gives a silent invitation with no button
+and when a returning guest skips it; `landingStartAt` is where it starts
+on the generic landing page, which has no envelope: there it begins as
+soon as the browser allows, in practice on the visitor's first tap or key
+press, and the music button is always shown. `null` gives a silent invitation with no button
 (§20).
 
 `location` fields: `room` (optional small caps under the venue name),

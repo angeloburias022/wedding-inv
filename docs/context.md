@@ -596,3 +596,19 @@ then connect the real Google Sheet and deploy to Vercel.
   cues of 45 s and 60 s: playback began at those points; skip played after
   a visit left playing, stayed quiet after a pause, and played again once
   the button had been pressed.
+- Song on the generic landing page (`/`), from 1:04 (`music.landingStartAt:
+  64`), at Angelo's request. That page has no envelope and so no tap, and
+  browsers block sound on arrival: the song is cued at 1:04 and starts
+  with the visitor's first tap or key press anywhere (immediately in the
+  few browsers that allow it). The music button is always shown there. A
+  visitor who paused it last time stays in silence, with the button cued
+  at 1:04. Tested in headless Chrome: paused at 1:04 on arrival, playing
+  from 1:04 after the first tap, quiet on a later visit after a pause, and
+  the invite page's seal still starts from 0:00.
+- Generic landing page: the couple's names appeared twice (the heading at
+  the top, then again in large type above the countdown). The large repeat
+  is removed at Angelo's request; the top names are now the page's heading,
+  followed by the date, the countdown and the "scan the QR code" note.
+  The spacing was then evened out: logo, names, date, countdown and note
+  form one group, centred on the page, in place of a heading pinned to
+  the top with a wide gap below it. Checked at phone and desktop size.

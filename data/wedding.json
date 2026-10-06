@@ -37,7 +37,8 @@
     "title": "Risk It All",
     "artist": "Bruno Mars",
     "startAt": 0,
-    "skipStartAt": 48
+    "skipStartAt": 48,
+    "landingStartAt": 64
   },
   "settings": {
     "theme": "heritage",
