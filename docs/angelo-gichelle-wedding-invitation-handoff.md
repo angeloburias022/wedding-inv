@@ -252,8 +252,10 @@ artwork in gold (§4.3; since 2026-10-03, before that "A&G" in text).
     opens the invitation (§20). No extra step.
 -   Returning guests (added 2026-10-06): once an invitation has been
     opened on a device, later visits show a quiet "Skip to the
-    invitation →" link under the hint. It goes straight in, at the top,
-    with no animation and no song (the music button is there). The seal
+    invitation →" link under the hint. It goes straight in, at THE DAY
+    (the schedule, which is what a returning guest is usually after; the
+    top if that section is switched off), with no animation and no song
+    (the music button is there). The seal
     still gives the full opening. First-time guests never see the link,
     and its space is always reserved so the envelope doesn't shift.
     Remembered per invitation in the browser's `localStorage`; nothing is

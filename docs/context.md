@@ -578,3 +578,7 @@ then connect the real Google Sheet and deploy to Vercel.
   visit; link on a fresh return visit; skip lands at the top with the song
   paused and the music button working; link still there after Back; the
   seal on a return visit gives the full opening with the song.
+- Skip now lands on THE DAY (the schedule) instead of the top, at
+  Angelo's request: a returning guest usually wants the time and place.
+  The gate's open takes an optional `scrollTo` section id and falls back
+  to the top if that section is off.

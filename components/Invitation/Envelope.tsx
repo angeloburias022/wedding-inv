@@ -45,12 +45,12 @@ export function Envelope({ guestName, eyebrow, cta, hint, skipLabel, coupleName,
   // Hides the skip link once the envelope is on its way open.
   const [leaving, setLeaving] = useState(false);
 
-  /** For returning guests: straight in, with no animation and no song. */
+  /** For returning guests: straight to the wedding day's schedule, with no animation and no song. */
   const skip = () => {
     if (opening.current) return;
     opening.current = true;
     stayQuiet();
-    openInvitation({ seamless: true });
+    openInvitation({ seamless: true, scrollTo: "day" });
   };
 
   const open = async () => {

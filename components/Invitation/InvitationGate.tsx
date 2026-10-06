@@ -6,6 +6,8 @@ import { createContext, useContext, useEffect, useRef, useState, useSyncExternal
 type OpenOptions = {
   /** The opening has already covered the screen (the envelope's card): swap instantly, no fades. */
   seamless?: boolean;
+  /** Start at this section (its id) instead of the top; falls back to the top if it isn't there. */
+  scrollTo?: string;
 };
 
 const OpenInvitationContext = createContext<(options?: OpenOptions) => void>(() => {});
@@ -38,6 +40,7 @@ const getServerSnapshot = () => false;
  */
 let openedByTap = false;
 let seamlessOpen = false;
+let openAt: string | null = null;
 
 if (typeof window !== "undefined") {
   // We restore the scroll ourselves once the content is rendered.
@@ -97,6 +100,7 @@ export function InvitationGate({ opening, children }: InvitationGateProps) {
     }
     openedByTap = true;
     seamlessOpen = Boolean(options?.seamless);
+    openAt = options?.scrollTo ?? null;
     rememberOpened();
     listeners.forEach((notify) => notify());
   };
@@ -133,12 +137,16 @@ function OpenedContent({ children }: { children: React.ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
   // Read once per mount: dev-mode effects run twice and must agree on how we got here.
   const [byTap] = useState(() => openedByTap);
+  const [startAt] = useState(() => openAt);
 
   useEffect(() => {
     openedByTap = false;
     seamlessOpen = false;
+    openAt = null;
     if (byTap) {
-      window.scrollTo({ top: 0, behavior: "instant" });
+      const section = startAt ? document.getElementById(startAt) : null;
+      if (section) section.scrollIntoView({ behavior: "instant", block: "start" });
+      else window.scrollTo({ top: 0, behavior: "instant" });
       ref.current?.focus({ preventScroll: true });
     } else {
       window.scrollTo({ top: readSavedScroll(), behavior: "instant" });
@@ -173,7 +181,7 @@ function OpenedContent({ children }: { children: React.ReactNode }) {
       window.removeEventListener("pagehide", saveScroll);
       document.removeEventListener("click", onClick);
     };
-  }, [byTap]);
+  }, [byTap, startAt]);
 
   return (
     <div ref={ref} tabIndex={-1} aria-label="Invitation" className="outline-none">
