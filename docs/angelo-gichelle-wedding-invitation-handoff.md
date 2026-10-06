@@ -1006,9 +1006,12 @@ Example:
 swipeable carousel; an empty list shows a placeholder frame. An entry may
 also carry `video` (`src` and `poster`; added 2026-10-07): a short, silent
 clip shown in place of its photos, used for the proposal in "The
-Question" (32 seconds: the kneel and the yes). It sits in a portrait
-frame, plays by itself while on screen and loops, with the song carrying
-on over it; reduced motion shows the poster still.
+Question" (80 seconds, 0:20 to 1:40 of the recording: the two of them at
+the window, then the kneel and the yes). It sits in a portrait
+frame, plays silently by itself while on screen and loops, with the song
+carrying on over it; reduced motion shows the poster still. A speaker
+button in its corner plays it once from the start with its own sound,
+during which the song pauses.
 
 ## events.json
 

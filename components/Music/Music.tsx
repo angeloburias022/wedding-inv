@@ -34,6 +34,9 @@ let wanted = false;
 /** Set the first time the invitation is open in this page load; a reload is picked up then. */
 let hasOpened = false;
 
+/** Set while something else on the page (the proposal clip, with its sound on) has the sound. */
+let held = false;
+
 type Saved = { time: number; playing: boolean };
 
 /**
@@ -174,9 +177,24 @@ function playFrom(audio: HTMLAudioElement, seconds: number): Promise<void> {
   });
 }
 
+/** Another sound is starting (the story's clip, unmuted): the song steps aside. */
+export function holdMusic() {
+  if (!player || player.paused) return;
+  held = true;
+  player.pause();
+}
+
+/** That sound has stopped: the song comes back, if it was the one we paused and the guest still wants it. */
+export function releaseMusic() {
+  if (!held) return;
+  held = false;
+  if (wanted) player?.play().catch(() => {});
+}
+
 function toggleMusic() {
   const audio = player;
   if (!audio) return;
+  held = false;
   if (!audio.paused) {
     rememberChoice(false);
     return audio.pause();

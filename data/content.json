@@ -11,7 +11,9 @@
   },
   "story": {
     "eyebrow": "Our story",
-    "title": "Us"
+    "title": "Us",
+    "soundOn": "Play with sound",
+    "soundOff": "Mute"
   },
   "day": {
     "eyebrow": "The day",

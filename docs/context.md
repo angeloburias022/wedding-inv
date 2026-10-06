@@ -646,3 +646,23 @@ then connect the real Google Sheet and deploy to Vercel.
   Poster is 24 s into the clip. Tested in headless Chrome: paused off
   screen, playing muted and looping in view with the song still on, paused
   again when scrolled away, and still for reduced motion.
+- Speaker button on the proposal clip (Angelo's choice after weighing
+  sound against silence): the clip still plays silently by itself, and a
+  button in its corner plays it once from the start with its own sound.
+  The song pauses meanwhile and returns when the clip ends, is muted
+  again, or is scrolled away. The web clip was re-encoded with its audio
+  (2 MB); the recording was quiet (about -30 dB on average), so it was
+  brought up to a normal level. Tested in headless Chrome: each of those
+  four cases, with the song pausing and resuming. The audio itself has not
+  been listened to.
+- Window in the clip: Angelo found the buildings through the window
+  unclear. It is the glass in the original, not the encoding, so
+  enhancement can't recover it. Two full-quality cuts of 1:08 to 1:40 were
+  saved to `originals/` for trying an AI enhancer (an exact HDR cut,
+  221 MB, and a standard-colour 4K copy, 97 MB). Offered and not decided:
+  cropping in closer on the couple so the window matters less.
+- Proposal clip lengthened at Angelo's request: it now runs from 0:20 to
+  1:40 of the original (80 seconds, 5 MB) instead of 1:08 to 1:40, so it
+  opens with the two of them at the window before the kneel. Same still
+  (1:32 of the original). The full-quality cuts in `originals/` still
+  cover 1:08 to 1:40 only.

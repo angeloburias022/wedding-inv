@@ -8,14 +8,21 @@ type TimelineEntryProps = {
   entry: StoryEntry;
   /** Alternates the image side on desktop. */
   flipped: boolean;
+  /** Accessible names for a clip's speaker button. */
+  soundLabels: { on: string; off: string };
 };
 
-export function TimelineEntry({ entry, flipped }: TimelineEntryProps) {
+export function TimelineEntry({ entry, flipped, soundLabels }: TimelineEntryProps) {
   return (
     <li className="grid items-center gap-8 md:grid-cols-2 md:gap-16">
       <Reveal className={flipped ? "md:order-2" : undefined}>
         {entry.video ? (
-          <StoryVideo src={entry.video.src} poster={entry.video.poster} alt={`${entry.title}, ${entry.location}`} />
+          <StoryVideo
+            src={entry.video.src}
+            poster={entry.video.poster}
+            alt={`${entry.title}, ${entry.location}`}
+            soundLabels={soundLabels}
+          />
         ) : (
           <PhotoCarousel
             images={entry.images}
