@@ -13,7 +13,7 @@ type OpeningProps = {
   cta: string;
   /** Under the envelope, e.g. "Tap the seal to open". */
   envelopeHint: string;
-  /** Under the hint for returning guests, e.g. "Skip to the invitation". */
+  /** Under the hint for returning guests, e.g. "Skip to the wedding day". */
   skip: string;
   signature: string;
   /** Omitted on the generic (non-personalised) landing page. */

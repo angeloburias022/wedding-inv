@@ -251,8 +251,7 @@ artwork in gold (§4.3; since 2026-10-03, before that "A&G" in text).
     flap back, slides out the card (monogram, couple names, date), then
     opens the invitation (§20). No extra step.
 -   Returning guests (added 2026-10-06): once an invitation has been
-    opened on a device, later visits show a quiet "Skip to the
-    invitation →" link under the hint. It goes straight in, at THE DAY
+    opened on a device, later visits show a quiet "Skip to the wedding day →" link under the hint. It goes straight in, at THE DAY
     (the schedule, which is what a returning guest is usually after; the
     top if that section is switched off), with no animation and no song
     (the music button is there). The seal

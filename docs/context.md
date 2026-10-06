@@ -155,7 +155,7 @@ secondary) → RSVP → Closing. One continuous vertical scroll.
 - **Returning guests can skip the envelope** (2026-10-06): a guest coming
   back to check the time shouldn't have to sit through the opening and the
   song again. After the first open, the envelope shows a "Skip to the
-  invitation →" link: straight in, no animation, no song. Chosen over
+  wedding day →" link: straight to THE DAY, no animation, no song. Chosen over
   opening automatically for returning guests (the envelope would be gone
   after one visit), a skip link for everyone (invites skipping the best
   moment unseen) and a faster animation (still a wait, still the song).
@@ -582,3 +582,5 @@ then connect the real Google Sheet and deploy to Vercel.
   Angelo's request: a returning guest usually wants the time and place.
   The gate's open takes an optional `scrollTo` section id and falls back
   to the top if that section is off.
+- Skip link reworded from "Skip to the invitation" to "Skip to the wedding
+  day", since it now lands on the schedule (`opening.skip`).

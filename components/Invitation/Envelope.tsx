@@ -12,7 +12,7 @@ type EnvelopeProps = {
   /** Accessible name of the seal button, e.g. "Open invitation". */
   cta: string;
   hint: string;
-  /** Shown to returning guests under the hint, e.g. "Skip to the invitation". */
+  /** Shown to returning guests under the hint, e.g. "Skip to the wedding day". */
   skipLabel: string;
   coupleName: string;
   date: string;
