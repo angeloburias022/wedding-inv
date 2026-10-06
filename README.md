@@ -194,6 +194,15 @@ to the envelope keeps it playing, with the button still there, and opening the
 envelope again carries on; if the guest had paused it, opening starts it from
 the beginning.
 
+`music.startAt` and `music.skipStartAt` (seconds, `0` = the beginning) choose
+where in the song it starts: `startAt` when the envelope is opened, and
+`skipStartAt` for a returning guest who taps "Skip to the wedding day". It is
+set to `48`, so a skip starts the song at 0:48 every time.
+
+A returning guest who skips gets the song only if they left it playing on
+their last visit; if they had paused it, the invitation stays quiet. That
+choice is remembered on their device.
+
 A reload can't keep the sound going without a gap (the page is rebuilt, and
 browsers block sound until the guest taps). The song's position is remembered
 for the tab, and it carries on from there: at once where the browser allows

@@ -37,6 +37,8 @@ export default async function InvitePage({ params }: PageProps<"/invite/[code]">
       {wedding.music && (
         <Music
           src={wedding.music.src}
+          startAt={wedding.music.startAt}
+          skipStartAt={wedding.music.skipStartAt}
           title={`${wedding.music.title} · ${wedding.music.artist}`}
           copy={content.music}
         />

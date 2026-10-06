@@ -253,8 +253,10 @@ artwork in gold (§4.3; since 2026-10-03, before that "A&G" in text).
 -   Returning guests (added 2026-10-06): once an invitation has been
     opened on a device, later visits show a quiet "Skip to the wedding day →" link under the hint. It goes straight in, at THE DAY
     (the schedule, which is what a returning guest is usually after; the
-    top if that section is switched off), with no animation and no song
-    (the music button is there). The seal
+    top if that section is switched off), with no animation. The song
+    starts, from `music.skipStartAt`, only if the guest left it playing
+    on their last visit; if they had paused it, it stays off (remembered
+    per invitation in `localStorage`). The seal
     still gives the full opening. First-time guests never see the link,
     and its space is always reserved so the envelope doesn't shift.
     Remembered per invitation in the browser's `localStorage`; nothing is
@@ -897,7 +899,9 @@ Example:
   "music": {
     "src": "/audio/risk-it-all.mp3",
     "title": "Risk It All",
-    "artist": "Bruno Mars"
+    "artist": "Bruno Mars",
+    "startAt": 0,
+    "skipStartAt": 48
   },
   "settings": {
     "theme": "heritage",
@@ -913,7 +917,9 @@ Example:
 
 `music` (added 2026-10-03) is the song that starts when the envelope opens:
 `src` is a file in `public/audio/`, and `title` and `artist` make the
-music button's tooltip. `null` gives a silent invitation with no button
+music button's tooltip. `startAt` and `skipStartAt` (seconds; added
+2026-10-06) are where in the song it starts when the envelope is opened
+and when a returning guest skips it. `null` gives a silent invitation with no button
 (§20).
 
 `location` fields: `room` (optional small caps under the venue name),

@@ -3,7 +3,7 @@
 import { animate as animateElement, useAnimate } from "motion/react";
 import { useRef, useState } from "react";
 import { Monogram } from "@/components/Decor/Monogram";
-import { startMusic, stayQuiet } from "@/components/Music/Music";
+import { startMusic, startMusicOnSkip } from "@/components/Music/Music";
 import { useOpenInvitation, useOpenedBefore } from "./InvitationGate";
 
 type EnvelopeProps = {
@@ -45,11 +45,12 @@ export function Envelope({ guestName, eyebrow, cta, hint, skipLabel, coupleName,
   // Hides the skip link once the envelope is on its way open.
   const [leaving, setLeaving] = useState(false);
 
-  /** For returning guests: straight to the wedding day's schedule, with no animation and no song. */
+  /** For returning guests: straight to the wedding day's schedule, with no animation; the song plays if they left it on last time. */
   const skip = () => {
     if (opening.current) return;
     opening.current = true;
-    stayQuiet();
+    // Must happen inside the tap itself, or the browser blocks the sound.
+    startMusicOnSkip();
     openInvitation({ seamless: true, scrollTo: "day" });
   };
 

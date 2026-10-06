@@ -35,7 +35,9 @@
   "music": {
     "src": "/audio/risk-it-all.mp3",
     "title": "Risk It All",
-    "artist": "Bruno Mars"
+    "artist": "Bruno Mars",
+    "startAt": 0,
+    "skipStartAt": 48
   },
   "settings": {
     "theme": "heritage",

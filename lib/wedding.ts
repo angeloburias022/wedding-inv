@@ -46,7 +46,15 @@ export type Wedding = {
     timeZones: { label: string; zone: string }[];
   };
   /** The song that starts when the envelope opens; null for a silent invitation. */
-  music: { src: string; title: string; artist: string } | null;
+  music: {
+    src: string;
+    title: string;
+    artist: string;
+    /** Seconds into the song where it starts when the envelope opens (0 = the beginning). */
+    startAt: number;
+    /** Seconds into the song where it starts for a returning guest who skips the envelope. */
+    skipStartAt: number;
+  } | null;
   settings: {
     theme: ThemeName;
     sections: {

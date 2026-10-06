@@ -6,6 +6,10 @@ import type { Content } from "@/lib/wedding";
 
 type MusicProps = {
   src: string;
+  /** Seconds into the song where it starts when the envelope opens. */
+  startAt: number;
+  /** Seconds into the song where it starts for a returning guest who skips the envelope. */
+  skipStartAt: number;
   /** Shown as the button's tooltip, e.g. "Risk It All · Bruno Mars". */
   title: string;
   copy: Content["music"];
@@ -15,6 +19,7 @@ const VOLUME = 0.7;
 const FADE_IN_MS = 2500;
 
 const STORAGE_KEY = "invitationMusic";
+const QUIET_KEY = "invitationMusicQuiet";
 
 // One player per page, reachable from the envelope's tap handler.
 let player: HTMLAudioElement | null = null;
@@ -25,6 +30,28 @@ let wanted = false;
 let hasOpened = false;
 
 type Saved = { time: number; playing: boolean };
+
+/**
+ * Whether the guest turned the song off, remembered on this device: a
+ * returning guest who skips the envelope gets the song only if they left it
+ * playing last time.
+ */
+function rememberChoice(on: boolean) {
+  wanted = on;
+  try {
+    localStorage.setItem(`${QUIET_KEY}:${location.pathname}`, on ? "0" : "1");
+  } catch {
+    // Storage can be unavailable (private mode); returning guests then get the song.
+  }
+}
+
+function choseQuiet() {
+  try {
+    return localStorage.getItem(`${QUIET_KEY}:${location.pathname}`) === "1";
+  } catch {
+    return false;
+  }
+}
 
 function savePlayback() {
   if (!player) return;
@@ -73,20 +100,35 @@ function pickUpAfterReload(audio: HTMLAudioElement, saved: Saved) {
 }
 
 /**
- * Starts the song from the beginning, fading in. Browsers only allow sound
+ * Starts the song from its opening cue, fading in. Browsers only allow sound
  * from inside a tap, so the envelope calls this straight from the seal's click
  * handler, before any awaiting. iPhones ignore the volume and start at full level.
  * A song already playing (the guest came Back to the envelope) just carries on.
  */
 export function startMusic() {
-  const audio = player;
-  if (!audio || !audio.paused) return;
-  wanted = true;
+  if (player) playFrom(player, Number(player.dataset.startAt) || 0);
+}
+
+/**
+ * For a returning guest who skips the envelope: the song from its own cue if
+ * they left it playing last time, silence if they had turned it off. Either
+ * way there is no earlier playback to pick up.
+ */
+export function startMusicOnSkip() {
+  hasOpened = true;
+  if (player && !choseQuiet()) playFrom(player, Number(player.dataset.skipStartAt) || 0);
+}
+
+function playFrom(audio: HTMLAudioElement, seconds: number) {
+  if (!audio.paused) return;
+  rememberChoice(true);
   // Opening the envelope with the song paused is a fresh start, not a resume.
-  audio.currentTime = 0;
+  audio.currentTime = seconds;
   audio.volume = 0;
   audio.play().then(
     () => {
+      // Some phones ignore a position set before the song has loaded; set it again once it plays.
+      if (audio.currentTime < seconds - 1) audio.currentTime = seconds;
       const start = performance.now();
       const step = (now: number) => {
         // A frame's timestamp can be slightly earlier than `start`; a negative volume throws.
@@ -101,19 +143,14 @@ export function startMusic() {
   );
 }
 
-/** For a guest who skips the envelope: no song, and no picking up an earlier one, until they press the button. */
-export function stayQuiet() {
-  hasOpened = true;
-}
-
 function toggleMusic() {
   const audio = player;
   if (!audio) return;
   if (!audio.paused) {
-    wanted = false;
+    rememberChoice(false);
     return audio.pause();
   }
-  wanted = true;
+  rememberChoice(true);
   cancelAnimationFrame(fadeFrame);
   audio.volume = VOLUME;
   audio.play().catch(() => {});
@@ -129,7 +166,7 @@ function toggleMusic() {
  * where it permits sound without a tap, otherwise on the guest's next tap.
  * Lives outside the gate so the song carries from the envelope into the story.
  */
-export function Music({ src, title, copy }: MusicProps) {
+export function Music({ src, startAt, skipStartAt, title, copy }: MusicProps) {
   const open = useInvitationOpen();
   const [playing, setPlaying] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -180,6 +217,8 @@ export function Music({ src, title, copy }: MusicProps) {
           if (element?.error) setFailed(true);
         }}
         src={src}
+        data-start-at={startAt}
+        data-skip-start-at={skipStartAt}
         loop
         preload="auto"
         onPlay={() => setPlaying(true)}

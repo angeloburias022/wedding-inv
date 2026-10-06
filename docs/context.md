@@ -155,7 +155,8 @@ secondary) → RSVP → Closing. One continuous vertical scroll.
 - **Returning guests can skip the envelope** (2026-10-06): a guest coming
   back to check the time shouldn't have to sit through the opening and the
   song again. After the first open, the envelope shows a "Skip to the
-  wedding day →" link: straight to THE DAY, no animation, no song. Chosen over
+  wedding day →" link: straight to THE DAY, no animation; the song
+  plays only if they left it on last time. Chosen over
   opening automatically for returning guests (the envelope would be gone
   after one visit), a skip link for everyone (invites skipping the best
   moment unseen) and a faster animation (still a wait, still the song).
@@ -584,3 +585,14 @@ then connect the real Google Sheet and deploy to Vercel.
   to the top if that section is off.
 - Skip link reworded from "Skip to the invitation" to "Skip to the wedding
   day", since it now lands on the schedule (`opening.skip`).
+- Song on skip (Angelo's idea, refined together): tapping "Skip to the
+  wedding day" starts the song if the guest left it playing on their last
+  visit and stays quiet if they had paused it. The choice is remembered on
+  the device whenever they press the music button. Replaces "skip is
+  always silent".
+- Start points in the song: new `music.startAt` (envelope) and
+  `music.skipStartAt` (skip) in `wedding.json`, in seconds. Angelo set
+  skip to 0:48 (`48`); the envelope still starts at the beginning (`0`). Tested in headless Chrome with temporary
+  cues of 45 s and 60 s: playback began at those points; skip played after
+  a visit left playing, stayed quiet after a pause, and played again once
+  the button had been pressed.
