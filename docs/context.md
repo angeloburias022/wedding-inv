@@ -618,3 +618,31 @@ then connect the real Google Sheet and deploy to Vercel.
 - Created `docs/PARKED-FEATURES.md` at Angelo's request: every feature
   agreed for later or offered and not decided, with what each is waiting
   for. The parked items that were under "Open questions" here moved there.
+- Proposal film added to the story, in "The Question" (2026), at Angelo's
+  request. He put the phone's original in `public/videos/`: 2.3 GB, 5:12,
+  4K portrait, HDR, 60 fps, which can't be committed (GitHub's limit is
+  100 MB) or served. Made a web version: converted to standard-range
+  colour with macOS's `avconvert` (ffmpeg here has no HDR filter), then
+  720×1280 H.264 at 30 fps with ffmpeg: 16 MB, small because it is a
+  fixed tripod shot. The original moved to `originals/` (new, git-ignored).
+  Poster taken at 3:20 (`public/images/proposal-poster.webp`).
+- New `components/Story/StoryVideo.tsx`, optional `video` on a story
+  entry, and `story.playVideo` copy. The song steps aside while the film
+  plays (`holdMusic` / `releaseMusic`) and returns when it stops. Tested in
+  headless Chrome at phone and desktop size: the still with its play
+  button, playback at 720×1280, the song pausing on play and resuming on
+  pause. Not checked on a real phone, and only the sampled frames of the
+  film were looked at, not the whole five minutes.
+- Changed the same day after talking it through: the full five minutes
+  behind a play button became a 32-second silent highlight, 1:08 to 1:40
+  of the original (the kneel and the yes, Angelo's cut), 1.6 MB. It plays
+  by itself while on screen and loops, and the song keeps playing over it;
+  browsers allow the autoplay because it has no sound. Reasons: most
+  guests won't sit through a five-minute fixed wide shot whose first part
+  is an empty room, and a silent clip under "Risk It All" reads like a
+  film scene. The full video is not on the site (a "Watch the full moment"
+  link was offered and not taken); the original stays in `originals/`.
+  The play button, its copy and the song-pausing code were removed again.
+  Poster is 24 s into the clip. Tested in headless Chrome: paused off
+  screen, playing muted and looping in view with the song still on, paused
+  again when scrolled away, and still for reduced motion.

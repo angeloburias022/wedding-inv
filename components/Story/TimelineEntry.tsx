@@ -2,6 +2,7 @@ import { Reveal } from "@/components/Motion/Reveal";
 import { photoRatio } from "@/lib/photos";
 import type { StoryEntry } from "@/lib/wedding";
 import { PhotoCarousel } from "./PhotoCarousel";
+import { StoryVideo } from "./StoryVideo";
 
 type TimelineEntryProps = {
   entry: StoryEntry;
@@ -13,13 +14,17 @@ export function TimelineEntry({ entry, flipped }: TimelineEntryProps) {
   return (
     <li className="grid items-center gap-8 md:grid-cols-2 md:gap-16">
       <Reveal className={flipped ? "md:order-2" : undefined}>
-        <PhotoCarousel
-          images={entry.images}
-          alt={`${entry.title}, ${entry.location}`}
-          sizes="(min-width: 768px) 45vw, 100vw"
-          placeholder={entry.date}
-          ratio={photoRatio(entry.images[0])}
-        />
+        {entry.video ? (
+          <StoryVideo src={entry.video.src} poster={entry.video.poster} alt={`${entry.title}, ${entry.location}`} />
+        ) : (
+          <PhotoCarousel
+            images={entry.images}
+            alt={`${entry.title}, ${entry.location}`}
+            sizes="(min-width: 768px) 45vw, 100vw"
+            placeholder={entry.date}
+            ratio={photoRatio(entry.images[0])}
+          />
+        )}
       </Reveal>
 
       <Reveal delay={0.15} y={12} className="flex flex-col gap-4 text-center md:text-left">

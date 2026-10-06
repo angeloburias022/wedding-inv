@@ -25,6 +25,7 @@
     "title": "The Question",
     "location": "Melbourne",
     "images": [],
+    "video": { "src": "/videos/proposal-moment.mp4", "poster": "/images/proposal-poster.webp" },
     "caption": "She said yes."
   },
   {

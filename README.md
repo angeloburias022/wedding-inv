@@ -42,6 +42,7 @@ npm run generate:qrs  # QR codes + print sheet → print/ (git-ignored)
 | `components/Place/VenueArch.tsx` | Venue photo revealed through an opening arch |
 | `components/Place/VenueFilm.tsx` | Scroll-driven venue clip (used when `location.video` is set) |
 | `components/Story/PhotoCarousel.tsx` | Swipeable photos when a story entry has several |
+| `components/Story/StoryVideo.tsx` | A short silent clip for a story entry (the proposal) that plays by itself in view |
 | `components/Invitation/Envelope.tsx` | The guest's opening: sealed envelope that opens into the invitation; returning guests also get a "Skip to the wedding day" link |
 | `components/Music/Music.tsx` | The song: starts on the seal tap, with a pause button bottom-left |
 | `components/Invitation/ChapterNav.tsx` | Chapter dots on the right edge: progress and jump to a section |
@@ -145,6 +146,41 @@ to 4:5, wide shots show whole up to 1.91:1. A carousel uses its first photo's
 shape for every slide. Restart `npm run dev` after adding or swapping a photo
 to pick up its new shape. A venue photo in portrait is capped at 75% of the
 screen height.
+
+### Story film
+
+A story entry can show a short film in place of its photos (the proposal, in
+"The Question"). Add `video` to the entry in `data/story.json`:
+
+```json
+"video": { "src": "/videos/proposal-moment.mp4", "poster": "/images/proposal-poster.webp" }
+```
+
+It is a silent clip in a portrait (9:16) frame that plays by itself while it is
+on screen and loops, like a photo that comes alive; the invitation's song
+carries on over it. Browsers allow that only because it has no sound. It rests
+when scrolled away, a tap pauses or plays it, and reduced motion (or an iPhone
+in Low Power Mode) shows the poster still.
+
+Never put a phone's original recording in `public/`: the proposal was 2.3 GB of
+4K HDR, far past GitHub's 100 MB limit. Keep originals in `originals/`
+(git-ignored) and cut a short web clip. iPhone video is HDR, and ffmpeg alone
+leaves the colours washed out, so cut and convert to standard range with
+macOS's `avconvert` first, then shrink and drop the sound:
+
+```bash
+# 1:08 to 1:40 of the original (start in seconds, then length)
+avconvert -s "originals/PROPOSAL YERN.mov" -p Preset3840x2160 -o /tmp/clip.mov \
+  --start 68 --duration 32 --replace
+ffmpeg -i /tmp/clip.mov -map 0:v:0 -an -vf "scale=720:1280:flags=lanczos" \
+  -c:v libx264 -preset slow -crf 25 -pix_fmt yuv420p \
+  -movflags +faststart public/videos/proposal-moment.mp4
+ffmpeg -ss 24 -i /tmp/clip.mov -frames:v 1 -vf "scale=720:1280" /tmp/poster.png
+```
+
+That gave 1.6 MB for 32 seconds. Convert the poster PNG to WebP (any image
+tool) and save it as `public/images/proposal-poster.webp`; `-ss 24` picks the
+moment within the clip, in seconds, used as the still.
 
 ## The venue
 

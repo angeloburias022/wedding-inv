@@ -74,6 +74,8 @@ export type StoryEntry = {
   location: string;
   /** One photo, or several for a swipeable carousel. Empty shows a placeholder. */
   images: string[];
+  /** A short, silent clip for this milestone, shown in place of the photos: the file and its still. */
+  video?: { src: string; poster: string };
   caption: string;
 };
 

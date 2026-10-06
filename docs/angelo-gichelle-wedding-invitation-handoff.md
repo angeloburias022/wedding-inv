@@ -1003,7 +1003,12 @@ Example:
 ```
 
 `images` lists one or more photos under `public/images/`. Several make a
-swipeable carousel; an empty list shows a placeholder frame.
+swipeable carousel; an empty list shows a placeholder frame. An entry may
+also carry `video` (`src` and `poster`; added 2026-10-07): a short, silent
+clip shown in place of its photos, used for the proposal in "The
+Question" (32 seconds: the kneel and the yes). It sits in a portrait
+frame, plays by itself while on screen and loops, with the song carrying
+on over it; reduced motion shows the poster still.
 
 ## events.json
 
@@ -2344,7 +2349,8 @@ wedding-invitation/
 │   ├── Invitation/           Opening, Envelope, InvitationGate,
 │   │                         ScrollHint, ChapterNav, SectionHeader,
 │   │                         Photo, Closing
-│   ├── Story/                Timeline, TimelineEntry, PhotoCarousel
+│   ├── Story/                Timeline, TimelineEntry, PhotoCarousel,
+│   │                         StoryVideo
 │   ├── WeddingDay/           Schedule, EventCard, LiveStream,
 │   │                         AddToCalendar
 │   ├── Place/                VenueCard, VenueArch, VenueFilm
@@ -2379,6 +2385,8 @@ wedding-invitation/
 ├── proxy.ts                  lowercase codes → uppercase URL
 ├── next.config.ts            dev badge moved off the music button
 ├── public/images/            photos (story, venue), monogram.webp
+├── public/videos/            web-sized films (the proposal)
+├── originals/                full-size source media (git-ignored)
 ├── public/audio/             the song
 ├── public/decor/             floral corner artwork
 ├── background-flowers.png    source mockup for the floral corners
