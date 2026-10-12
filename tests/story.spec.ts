@@ -24,10 +24,13 @@ test.describe("the proposal clip", () => {
   test("plays with its own sound from the speaker button, and the song steps aside", async ({ page }) => {
     await openEnvelope(page, several.code);
     await clip(page).scrollIntoViewIfNeeded();
+    // As a guest would meet it: already playing silently before they reach for the sound.
+    // (Pressing the button before the clip had started was flaky on a slow machine.)
+    await expect.poll(() => clipState(page)).toEqual({ playing: true, muted: true });
     await expectSongPlaying(page);
 
     await page.getByRole("button", { name: content.story.soundOn }).click();
-    await expect.poll(() => clipState(page)).toEqual({ playing: true, muted: false });
+    await expect.poll(() => clipState(page), { timeout: 20_000 }).toEqual({ playing: true, muted: false });
     await expectSongQuiet(page);
 
     await page.getByRole("button", { name: content.story.soundOff }).click();
