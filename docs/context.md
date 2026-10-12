@@ -666,3 +666,35 @@ then connect the real Google Sheet and deploy to Vercel.
   opens with the two of them at the window before the kneel. Same still
   (1:32 of the original). The full-quality cuts in `originals/` still
   cover 1:08 to 1:40 only.
+
+### 2026-10-13
+
+- RSVP connected to the Google Sheet. Angelo created the sheet (tab
+  `RSVPs`) under his personal Google account and published the Apps Script
+  web app; `.env.local` holds its URL and a generated secret. Tested by
+  posting straight to the script: a wrong secret is answered "forbidden"
+  and writes nothing, the right secret is answered "ok" and writes a row.
+  Angelo confirmed the row in the sheet and the notification email. Then
+  tested through the website's own form in headless Chrome: a "yes" came
+  back with the thank-you message, which the site only shows once the
+  sheet confirms the save. Not yet set in Vercel.
+- The script now lives in the repo as `scripts/rsvp-sheet.gs`, in plain
+  ASCII, and also emails a one-line summary of each reply to the address
+  in the `NOTIFY_EMAIL` script property. The README points at the file
+  instead of carrying the code inline.
+- Problems hit on the way, all now in the README: code copied out of the
+  terminal broke Apps Script (a long dash and backtick quotes were
+  altered), hence the ASCII file and `pbcopy`; "An unknown error has
+  occurred" when running a function was the browser being signed in to
+  several Google accounts (fixed with a private window); and a deployment
+  set to "Anyone with Google account" answers 401 to the site, so access
+  must be the plain "Anyone".
+- Decided the Sheet is the record and email is only the alert; a database
+  was judged more than a hundred guests need.
+- Sanity check of the whole guest journey in headless Chrome against the
+  dev server: 18 of 18 checks passed (envelope, seal, song, proposal clip,
+  both time zones, calendar file, RSVP through to the sheet, skip link and
+  its 0:48 start, 404 and lowercase redirect, landing page, no browser
+  errors). Typecheck, lint and the production build pass. Headless and
+  muted, so it confirms behaviour, not sound or appearance; real phones
+  and the deployed site are still untested.

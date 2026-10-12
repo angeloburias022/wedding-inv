@@ -58,6 +58,7 @@ npm run generate:qrs  # QR codes + print sheet → print/ (git-ignored)
 | `lib/photos.ts` | Reads photo dimensions at build time so frames fit each photo |
 | `public/images/` | Photos (story, venue) |
 | `public/decor/` | Decorative artwork (floral corners) |
+| `scripts/rsvp-sheet.gs` | The Google Apps Script that saves RSVPs to the Sheet and emails a summary |
 | `scripts/qr-card-template.png`, `scripts/qr-card-monogram.png` | Card design and monogram the per-guest QR cards are built from |
 | `background-flowers.png` | Source mockup the floral corners are cropped from |
 | `docs/` | Product/design spec (handoff), running project context, and `PARKED-FEATURES.md` (features agreed for later) |
@@ -359,29 +360,35 @@ RSVPs never touch GitHub. The server action posts JSON to a Google Apps Script
 web app that appends a row to a Sheet.
 
 1. Create a Google Sheet with a tab named `RSVPs`.
-2. Extensions → Apps Script, paste:
+2. Extensions → Apps Script, delete what is there and paste the contents of
+   `scripts/rsvp-sheet.gs`. To put it on the clipboard exactly as written:
 
-   ```js
-   const COLUMNS = ["submittedAt", "code", "invitation", "attending",
-     "attendingGuests", "attendingCount", "dietary", "message"];
-
-   function doPost(e) {
-     const data = JSON.parse(e.postData.contents);
-     const secret = PropertiesService.getScriptProperties().getProperty("SECRET");
-     if (!secret || data.secret !== secret) {
-       return ContentService.createTextOutput("forbidden");
-     }
-     const sheet = SpreadsheetApp.getActive().getSheetByName("RSVPs");
-     if (sheet.getLastRow() === 0) sheet.appendRow(COLUMNS);
-     sheet.appendRow(COLUMNS.map((key) => data[key]));
-     return ContentService.createTextOutput("ok");
-   }
+   ```bash
+   pbcopy < scripts/rsvp-sheet.gs
    ```
 
-3. Project Settings → Script Properties → add `SECRET` (any long random string).
-4. Deploy → New deployment → Web app, execute as **Me**, access **Anyone**.
-5. Put the web app URL and the secret in `.env.local` (see `.env.example`) and in
-   Vercel's environment variables.
+   The script appends each reply as a row and, if `NOTIFY_EMAIL` is set, emails
+   you a one-line summary. It is plain ASCII on purpose: copying code out of a
+   terminal or a rendered page can alter quotes and dashes, which Apps Script
+   then rejects as a syntax error.
+
+3. Project Settings → Script Properties → add `SECRET` (any long random
+   string) and, for an email on each reply, `NOTIFY_EMAIL` (your address;
+   several can be separated by commas).
+4. Choose `authorize` in the function menu, press Run, and allow access. Google
+   warns that the app isn't verified because it is your own script: Advanced →
+   Go to the project.
+5. Deploy → New deployment → Web app, execute as **Me**, access **Anyone**
+   (the plain one: "Anyone with Google account" makes Google answer the site
+   with a 401 sign-in page). If running a function shows "An unknown error has
+   occurred", the browser is signed in to several Google accounts: use a
+   private window with only the sheet's account.
+6. Put the web app URL (it ends in `/exec`) and the secret in `.env.local` (see
+   `.env.example`) and in Vercel's environment variables, then restart
+   `npm run dev`.
+
+After changing the script later, publish it again: Deploy → Manage deployments
+→ edit → Version: New version. Otherwise the URL keeps running the old code.
 
 Guests can change their answer; each submission is a new row, so the latest row
 per code is the current answer.
