@@ -9,7 +9,8 @@ The full product/design/architecture spec lives next to this file in
 summarises it and records what has happened since.
 
 Features agreed or discussed but not built yet are listed in
-`docs/PARKED-FEATURES.md`.
+`docs/PARKED-FEATURES.md`. The RSVP → Google Sheets integration has its own
+guide, `docs/GOOGLE-SHEETS-RSVP.md`.
 
 ------------------------------------------------------------------------
 
@@ -29,7 +30,8 @@ Features agreed or discussed but not built yet are listed in
 - **Content:** JSON in GitHub (`wedding`, `guests`, `story`, `events`,
   `content`)
 - **RSVP storage:** Google Sheet via an Apps Script web app (never GitHub or
-  the filesystem). Setup steps are in the project `README.md`.
+  the filesystem), connected 2026-10-13, with an email for each reply. The
+  full guide is `docs/GOOGLE-SHEETS-RSVP.md`.
 - **Design source of truth:** Figma
 - **Primary target:** Mobile (390×844); desktop 1440×900
 - **Planned domain:** angeloandgichelle.com
@@ -97,6 +99,11 @@ secondary) → RSVP → Closing. One continuous vertical scroll.
   stays one continuous animation and nobody can skip the opening.
 - Build in vertical slices: Figma → Next.js → test, one section at a time,
   starting with the Opening.
+- **Automated tests, updated with every change** (2026-10-13): `npm test`
+  runs the guest journey with Playwright in phone-sized Chrome and WebKit.
+  Every feature or change of behaviour gets its test in the same commit.
+  The suite is run when asked for or once at the end of a piece of work,
+  before pushing, not after every edit; GitHub runs it on every push.
 - **Floral corners on every screen** (2026-09-30): fixed top-left and
   bottom-right blossoms cropped from `background-flowers.png`, behind the
   content, faded into the page. The mockup has text baked in, so only the
@@ -193,7 +200,7 @@ secondary) → RSVP → Closing. One continuous vertical scroll.
 | Visual direction, IA, tech architecture, motion | ~80% |
 | Data architecture | ~75% |
 | UI design (Figma) | ~40% |
-| Implementation | Basic end-to-end version working (unpolished) |
+| Implementation | Feature-complete with sample data; automated tests passing |
 
 **Working now:** all sections (Opening → US → THE DAY → THE PLACE → RSVP →
 Closing), four sample guests (one per type), both themes with a switcher in
@@ -208,14 +215,22 @@ becomes the screen), larger couple names, reload keeping the guest's place,
 a "Scroll" hint, chapter dots, the RSVP reminder in the closing, and a more
 visible livestream card. Since 2026-10-03: the song with its pause button,
 the monogram artwork across the site, and a finished QR card per guest.
+Since 2026-10-04: "Add to calendar", the envelope-only first screen, the
+skip link for returning guests, the ceremony in Melbourne and Manila time,
+and the song's reload, Back, skip and landing behaviour. Since 2026-10-07:
+the proposal clip in the story, with a speaker button. Since 2026-10-13:
+RSVPs saved to the real Google Sheet with an email for each, and an
+automated test suite (`npm test`).
 
 **Placeholders still in use:** story photos (empty frames), KBBQ name and
 address, the livestream link, venue directions,
 story text beyond the handoff examples, fonts (Cormorant + Jost),
 sample guests.
 
-**Next milestone:** Polish section by section alongside the Figma work,
-then connect the real Google Sheet and deploy to Vercel.
+**Next milestone:** Register the domain and deploy to Vercel (adding the
+two RSVP settings there), then test on real phones, including a printed
+QR card and the link opened inside Messenger. Real content (story photos,
+the dinner venue, the guest list) and the Figma polish continue alongside.
 
 ## Open questions / still to decide
 
@@ -698,3 +713,26 @@ then connect the real Google Sheet and deploy to Vercel.
   errors). Typecheck, lint and the production build pass. Headless and
   muted, so it confirms behaviour, not sound or appearance; real phones
   and the deployed site are still untested.
+- Automated tests added at Angelo's request, replacing the one-off
+  headless-Chrome scripts used until now: Playwright (new dev dependency),
+  `playwright.config.ts`, six files in `tests/`, `npm test` and
+  `npm run test:ui`, and a GitHub Actions workflow that runs typecheck,
+  lint and the tests on every push and pull request. The tests build the
+  site and serve it on port 3100, and send RSVPs to a stand-in sheet
+  (`tests/support/sheet-stub.mjs`), so the real sheet is never written to.
+  80 tests (40 in each of two phone browsers) passed on two runs in a row.
+  As a check that they catch real breakage, the song-on-skip call was
+  removed on purpose: exactly the matching test failed, and it passed
+  again once restored. The GitHub workflow has not run yet, so whether it
+  passes there (especially WebKit playing the clip on Linux) is unknown.
+- Documentation pass at Angelo's request. New `docs/GOOGLE-SHEETS-RSVP.md`
+  holds the whole RSVP → Google Sheets integration: how a reply travels,
+  the columns, setup from nothing, three ways to test, the problems met
+  and their fixes, upkeep, limits and what is still to do. The README's
+  RSVP section is now a summary pointing to it, with a table of the five
+  documents at the top and the test commands in "Commands". Handoff §11,
+  §35 and §43 and this file's snapshot, status and next milestone were
+  brought up to date. `PARKED-FEATURES.md` no longer lists the tests.
+- Testing rule refined: tests are updated with each change but only run
+  when asked for or at the end of a piece of work, to keep sessions
+  short.

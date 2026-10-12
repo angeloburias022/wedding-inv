@@ -10,7 +10,7 @@ When one is built, move it out of this file and record it in
 the livestream link) is not a feature; that list is under "Placeholders"
 and "Open questions" in `context.md`.
 
-Last updated: 2026-10-07.
+Last updated: 2026-10-13.
 
 ------------------------------------------------------------------------
 
@@ -116,11 +116,8 @@ Small options raised along the way. None is agreed.
 
 Not guest-facing. Suggested on 2026-10-06 when reviewing the code.
 
-- **Automated tests for the guest journey:** first visit, seal, Back,
-  reload, skip, the music choice, RSVP and the calendar file, so
-  `npm test` proves the flow still works after a change. Every check so
-  far has been a one-off script against headless Chrome.
 - **Tidy the music player** (`components/Music/Music.tsx`): it grew one
   rule at a time and now juggles several shared variables and storage
   keys. Rewrite its internals as one small state object with named
-  states, once the tests above are in place to make that safe.
+  states. The automated tests (built 2026-10-13, `npm test`) now make
+  that safe to do.

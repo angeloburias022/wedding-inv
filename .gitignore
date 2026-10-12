@@ -51,3 +51,8 @@ next-env.d.ts
 # full-size source media (too large for git; web versions live in public/)
 /originals/
 .DS_Store
+
+# test output
+/test-results/
+/playwright-report/
+/blob-report/

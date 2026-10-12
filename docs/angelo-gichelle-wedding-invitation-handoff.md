@@ -823,8 +823,14 @@ The server action:
     silently dropping it. In development it logs it to the terminal.
 
 Guests can change their answer. Each submission is a new row, and the
-latest row per code is the current answer. Setup steps and the Apps Script
-code are in the project README.
+latest row per code is the current answer.
+
+Connected 2026-10-13. The Apps Script is kept in the project as
+`scripts/rsvp-sheet.gs`; besides appending the row it emails a one-line
+summary of each reply to the address in its `NOTIFY_EMAIL` property (a
+failed email never loses the row). The Sheet is the record and the email
+only the alert. Setup, testing, the problems met and their fixes are in
+`docs/GOOGLE-SHEETS-RSVP.md`.
 
 Columns: `submittedAt`, `code`, `invitation`, `attending`,
 `attendingGuests`, `attendingCount`, `dietary`, `message`.
@@ -2381,10 +2387,18 @@ wedding-invitation/
 │   ├── add-guest.mts
 │   ├── remove-guest.mts
 │   ├── generate-qrs.mts
+│   ├── rsvp-sheet.gs         the Google Apps Script that saves RSVPs
 │   ├── qr-card-template.png  card design for the printed QR cards
 │   └── qr-card-monogram.png  monogram artwork (full size)
 │
-├── docs/                     this handoff + context.md
+├── tests/                    Playwright tests of the guest journey
+│   ├── envelope, music, story, day, rsvp, pages (.spec.ts)
+│   └── support/              shared helpers, stand-in for the Sheet
+├── playwright.config.ts      two phone browsers, own build on port 3100
+├── .github/workflows/        typecheck, lint and tests on every push
+│
+├── docs/                     this handoff, context.md,
+│                             GOOGLE-SHEETS-RSVP.md, PARKED-FEATURES.md
 ├── proxy.ts                  lowercase codes → uppercase URL
 ├── next.config.ts            dev badge moved off the music button
 ├── public/images/            photos (story, venue), monogram.webp
@@ -2685,14 +2699,17 @@ Information architecture   ~80%
 Data architecture          ~75%
 Technical architecture    ~80%
 UI design                  ~40%
-Implementation             basic end-to-end version working (unpolished)
+Implementation             feature-complete with sample data; tested
 ```
 
-Updated 2026-10-01. Every section is built and working with sample data;
-real content (story photos, KBBQ venue, fonts, monogram, guest list) is
-still being added. The next milestone is polishing section by section
-alongside the Figma work, then connecting the real Google Sheet and
-deploying to Vercel. Running status lives in `docs/context.md`.
+Updated 2026-10-13. Every section is built and working with sample data,
+the RSVP saves to the real Google Sheet, and an automated test suite
+(`npm test`, 80 tests across two phone browsers) covers the guest
+journey. Real content (story photos, KBBQ venue, fonts, guest list, the
+livestream link) is still being added. The next milestone is registering
+the domain, deploying to Vercel with the RSVP settings, and testing on
+real phones. Running status lives in `docs/context.md`; features agreed
+for later are in `docs/PARKED-FEATURES.md`.
 
 ------------------------------------------------------------------------
 

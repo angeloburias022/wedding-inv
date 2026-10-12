@@ -4,6 +4,14 @@ Personalised digital wedding invitation. The full product/design spec is
 `docs/angelo-gichelle-wedding-invitation-handoff.md` (the "handoff §" references
 in the code point here); running project context is in `docs/context.md`.
 
+| Document | What it is for |
+|---|---|
+| `README.md` | How to run, test and maintain the project |
+| `docs/angelo-gichelle-wedding-invitation-handoff.md` | The product, design and architecture spec |
+| `docs/context.md` | Current state, decisions and a dated change log |
+| `docs/GOOGLE-SHEETS-RSVP.md` | The RSVP → Google Sheets integration, end to end |
+| `docs/PARKED-FEATURES.md` | Features agreed for later or not yet decided |
+
 ## Requirements
 
 Node 20.9+ (Next.js 16). The repo pins Node 24 in `.nvmrc`:
@@ -21,10 +29,54 @@ npm run build         # production build (prerenders one page per guest)
 npm run start         # serve the production build
 npm run lint
 npm run typecheck
+npm test              # the guest journey in two phone browsers (see Tests)
+npm run test:ui       # the same, watched step by step
 npm run add:guest -- <names>  # add an invitation with a new random code
 npm run remove:guest -- <CODE> # remove an invitation
 npm run generate:qrs  # QR codes + print sheet → print/ (git-ignored)
 ```
+
+## Tests
+
+`npm test` walks the guest journey in two phone browsers (Chrome, and WebKit,
+the engine behind Safari) and reports what passed. It takes about a minute and
+a half.
+
+```bash
+npm test                              # everything
+npm run test:ui                       # watch the tests run, step by step
+npx playwright test tests/rsvp.spec.ts   # one file
+npx playwright show-report            # screenshots, video and a trace of any failure
+```
+
+First time on a machine: `npx playwright install webkit` (Chrome must be
+installed too).
+
+The tests build the site and run it on its own port (3100), so they neither
+need nor disturb `npm run dev`. RSVPs go to a stand-in for the Google Sheet
+(`tests/support/sheet-stub.mjs`), never to the real one, whatever `.env.local`
+says. Wording, guests and song cues are read from `data/`, so changing copy or
+the guest list doesn't break them.
+
+| File | Covers |
+|---|---|
+| `tests/envelope.spec.ts` | The envelope for each guest type, opening, Back, reload, reduced motion, the returning guest's skip link |
+| `tests/music.spec.ts` | The song: seal tap, pause button, Back, reload, the skip and landing cues, a remembered pause |
+| `tests/story.spec.ts` | The proposal clip: silent autoplay, resting off screen, the speaker button |
+| `tests/day.spec.ts` | Both time zones, the calendar menu, every guest's calendar file |
+| `tests/rsvp.spec.ts` | Yes, no, who is coming, validation, a failed save, the closing reminder |
+| `tests/pages.spec.ts` | Landing page, 404, lowercase links, search engines kept out |
+
+**Every feature or change of behaviour comes with its test.** Add or update
+the test in the same commit. The suite doesn't need running after every edit:
+run `npm test` once at the end of a piece of work, before pushing, or a single
+file while working on one area. GitHub also
+runs typecheck, lint and the tests on every push and pull request
+(`.github/workflows/test.yml`) and marks the commit with a tick or a cross.
+
+What the tests can't judge: how the song sounds, how anything looks, a real
+iPhone's silent switch or Low Power Mode, a printed QR code under a camera, or
+Messenger's built-in browser. Check those by hand before sending invitations.
 
 ## How it fits together
 
@@ -61,7 +113,10 @@ npm run generate:qrs  # QR codes + print sheet → print/ (git-ignored)
 | `scripts/rsvp-sheet.gs` | The Google Apps Script that saves RSVPs to the Sheet and emails a summary |
 | `scripts/qr-card-template.png`, `scripts/qr-card-monogram.png` | Card design and monogram the per-guest QR cards are built from |
 | `background-flowers.png` | Source mockup the floral corners are cropped from |
-| `docs/` | Product/design spec (handoff), running project context, and `PARKED-FEATURES.md` (features agreed for later) |
+| `docs/` | The spec, the running context, the Google Sheets RSVP guide and the parked features (see the table at the top) |
+| `tests/`, `playwright.config.ts` | Automated tests of the guest journey (`npm test`) |
+| `.github/workflows/test.yml` | Runs typecheck, lint and the tests on GitHub for every push |
+| `originals/` | Full-size source media, git-ignored (the proposal recording) |
 | `scripts/add-guest.mts` | Adds a guest with a new random code |
 | `scripts/remove-guest.mts` | Removes a guest by code |
 | `scripts/generate-qrs.mts` | QR generator (handoff §18) |
@@ -356,42 +411,18 @@ Artwork without text can be cropped larger.
 
 ## RSVP → Google Sheets
 
-RSVPs never touch GitHub. The server action posts JSON to a Google Apps Script
-web app that appends a row to a Sheet.
+RSVPs never touch GitHub. The server action posts each reply to a Google Apps
+Script web app (`scripts/rsvp-sheet.gs`), which appends a row to a Sheet and
+emails a one-line summary. The guest sees the thank-you only once the Sheet
+confirms the save.
 
-1. Create a Google Sheet with a tab named `RSVPs`.
-2. Extensions → Apps Script, delete what is there and paste the contents of
-   `scripts/rsvp-sheet.gs`. To put it on the clipboard exactly as written:
+Everything else is in **`docs/GOOGLE-SHEETS-RSVP.md`**: what is saved, setting
+it up from nothing, testing it, the problems hit the first time and their
+fixes, and how to look after it.
 
-   ```bash
-   pbcopy < scripts/rsvp-sheet.gs
-   ```
-
-   The script appends each reply as a row and, if `NOTIFY_EMAIL` is set, emails
-   you a one-line summary. It is plain ASCII on purpose: copying code out of a
-   terminal or a rendered page can alter quotes and dashes, which Apps Script
-   then rejects as a syntax error.
-
-3. Project Settings → Script Properties → add `SECRET` (any long random
-   string) and, for an email on each reply, `NOTIFY_EMAIL` (your address;
-   several can be separated by commas).
-4. Choose `authorize` in the function menu, press Run, and allow access. Google
-   warns that the app isn't verified because it is your own script: Advanced →
-   Go to the project.
-5. Deploy → New deployment → Web app, execute as **Me**, access **Anyone**
-   (the plain one: "Anyone with Google account" makes Google answer the site
-   with a 401 sign-in page). If running a function shows "An unknown error has
-   occurred", the browser is signed in to several Google accounts: use a
-   private window with only the sheet's account.
-6. Put the web app URL (it ends in `/exec`) and the secret in `.env.local` (see
-   `.env.example`) and in Vercel's environment variables, then restart
-   `npm run dev`.
-
-After changing the script later, publish it again: Deploy → Manage deployments
-→ edit → Version: New version. Otherwise the URL keeps running the old code.
-
-Guests can change their answer; each submission is a new row, so the latest row
-per code is the current answer.
-
-Without `RSVP_WEBHOOK_URL`, `npm run dev` logs RSVPs to the terminal; a
-production build refuses to accept them rather than silently dropping them.
+In short: the web app's address and a shared secret go in `.env.local`
+(`RSVP_WEBHOOK_URL`, `RSVP_WEBHOOK_SECRET`; see `.env.example`) and in Vercel's
+environment variables. Without the address, `npm run dev` logs RSVPs to the
+terminal and a production build refuses them rather than silently dropping
+them. Guests can change their answer; each submission is a new row, so the
+latest row per code is the current answer.
