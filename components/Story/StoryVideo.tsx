@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { holdMusic, releaseMusic } from "@/components/Music/Music";
 
 type StoryVideoProps = {
@@ -8,44 +8,23 @@ type StoryVideoProps = {
   /** Still shown until the clip loads, and instead of it for reduced motion. */
   poster: string;
   alt: string;
-  /** Accessible names for the speaker button: turning the clip's sound on, and off again. */
-  soundLabels: { on: string; off: string };
 };
 
 /**
  * A milestone's moment on film (the proposal), in a portrait frame: a short
  * clip that plays silently by itself while it is on screen and loops, like a
  * photo that comes alive, with the invitation's song carrying on over it.
- * Browsers allow that only because it starts muted. A speaker button plays it
- * once from the start with its own sound, and the song steps aside until it
- * ends, is muted again or leaves the screen. Reduced motion keeps the still.
+ * Browsers allow that only because it starts muted.
+ *
+ * The guest has the browser's own player controls: pause, scrub, sound, full
+ * screen (no download). A button of our own for the sound was tried and
+ * dropped: iPhones put their own mute control in the same corner. Turning the
+ * sound on carries on from where the clip is; the song steps aside until the
+ * clip is muted again, ends or leaves the screen. Reduced motion keeps the
+ * still until the guest plays it.
  */
-export function StoryVideo({ src, poster, alt, soundLabels }: StoryVideoProps) {
+export function StoryVideo({ src, poster, alt }: StoryVideoProps) {
   const ref = useRef<HTMLVideoElement>(null);
-  const [sound, setSound] = useState(false);
-
-  /** Back to the silent loop, and the song returns. */
-  const silence = () => {
-    const video = ref.current;
-    if (!video) return;
-    video.muted = true;
-    video.loop = true;
-    setSound(false);
-    releaseMusic();
-  };
-
-  const toggleSound = () => {
-    const video = ref.current;
-    if (!video) return;
-    if (sound) return silence();
-    holdMusic();
-    video.muted = false;
-    // Heard once, from the start, rather than joined halfway.
-    video.loop = false;
-    video.currentTime = 0;
-    setSound(true);
-    video.play().catch(() => {});
-  };
 
   useEffect(() => {
     const video = ref.current;
@@ -54,24 +33,21 @@ export function StoryVideo({ src, poster, alt, soundLabels }: StoryVideoProps) {
     video.muted = true;
     const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    // Plays only while in view; off screen it rests (and saves the guest's battery).
+    // Starts once a good part of it is on screen, and rests when it has left entirely
+    // (which saves the guest's battery). In between it is left as the guest has it:
+    // they can use the controls while only part of the frame is showing.
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          // A phone in low-power mode can refuse; the still stays, and a tap plays it.
+        if (entry.intersectionRatio >= 0.4) {
+          // A phone in low-power mode can refuse; the still stays, and the controls play it.
           if (!still) video.play().catch(() => {});
-          return;
-        }
-        video.pause();
-        // Scrolled past with the sound on: don't leave the song waiting.
-        if (!video.muted) {
+        } else if (!entry.isIntersecting) {
+          video.pause();
+          // Scrolled past with the sound on: back to silent, so the song isn't left waiting.
           video.muted = true;
-          video.loop = true;
-          setSound(false);
-          releaseMusic();
         }
       },
-      { threshold: 0.4 },
+      { threshold: [0, 0.4] },
     );
     observer.observe(video);
     return () => observer.disconnect();
@@ -84,49 +60,32 @@ export function StoryVideo({ src, poster, alt, soundLabels }: StoryVideoProps) {
         ref={ref}
         src={src}
         poster={poster}
+        controls
+        // No "Download" in the player's menu, and no "Save video as" on a right-click.
+        controlsList="nodownload"
+        onContextMenu={(event) => event.preventDefault()}
         muted
         loop
         playsInline
         preload="metadata"
         aria-label={alt}
-        onClick={(event) => {
+        // The guest turned the clip's sound on or off with the player's controls.
+        onVolumeChange={(event) => {
           const video = event.currentTarget;
-          if (video.paused) video.play().catch(() => {});
-          else video.pause();
+          const audible = !video.muted && video.volume > 0;
+          // Silent, it loops; with sound it plays through once.
+          video.loop = !audible;
+          if (audible) holdMusic();
+          else releaseMusic();
         }}
-        // With the sound on it plays once; then the silent loop and the song resume.
-        onEnded={() => {
-          silence();
-          ref.current?.play().catch(() => {});
+        // Reached the end with the sound on: back to the silent loop, and the song returns.
+        onEnded={(event) => {
+          const video = event.currentTarget;
+          video.muted = true;
+          video.play().catch(() => {});
         }}
         className="size-full object-cover [filter:var(--photo-filter)]"
       />
-      <button
-        type="button"
-        onClick={toggleSound}
-        aria-label={sound ? soundLabels.off : soundLabels.on}
-        aria-pressed={sound}
-        className="absolute right-3 bottom-3 flex size-11 items-center justify-center rounded-full bg-background/85 text-muted shadow-sm backdrop-blur-sm transition-colors hover:text-accent aria-pressed:text-accent"
-      >
-        <svg
-          viewBox="0 0 24 24"
-          aria-hidden
-          className="size-4 fill-none stroke-current"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M11 5 6.5 8.5H3v7h3.5L11 19z" />
-          {sound ? (
-            <>
-              <path d="M15.5 9a4.5 4.5 0 0 1 0 6" />
-              <path d="M18.5 6.5a8.5 8.5 0 0 1 0 11" />
-            </>
-          ) : (
-            <path d="m21 9.5-5 5m0-5 5 5" />
-          )}
-        </svg>
-      </button>
     </div>
   );
 }

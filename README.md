@@ -62,7 +62,7 @@ the guest list doesn't break them.
 |---|---|
 | `tests/envelope.spec.ts` | The envelope for each guest type, opening, Back, reload, reduced motion, the returning guest's skip link |
 | `tests/music.spec.ts` | The song: seal tap, pause button, Back, reload, the skip and landing cues, a remembered pause |
-| `tests/story.spec.ts` | The proposal clip: silent autoplay, resting off screen, the speaker button |
+| `tests/story.spec.ts` | The proposal clip: silent autoplay, resting off screen, the player controls, sound and the song |
 | `tests/day.spec.ts` | Both time zones, the calendar menu, every guest's calendar file |
 | `tests/rsvp.spec.ts` | Yes, no, who is coming, validation, a failed save, the closing reminder |
 | `tests/pages.spec.ts` | Landing page, 404, lowercase links, search engines kept out |
@@ -94,7 +94,7 @@ Messenger's built-in browser. Check those by hand before sending invitations.
 | `components/Place/VenueArch.tsx` | Venue photo revealed through an opening arch |
 | `components/Place/VenueFilm.tsx` | Scroll-driven venue clip (used when `location.video` is set) |
 | `components/Story/PhotoCarousel.tsx` | Swipeable photos when a story entry has several |
-| `components/Story/StoryVideo.tsx` | A short clip for a story entry (the proposal): plays silently by itself in view, with a speaker button for its sound |
+| `components/Story/StoryVideo.tsx` | A short clip for a story entry (the proposal): plays silently by itself in view, with the browser's player controls |
 | `components/Invitation/Envelope.tsx` | The guest's opening: sealed envelope that opens into the invitation; returning guests also get a "Skip to the wedding day" link |
 | `components/Music/Music.tsx` | The song: starts on the seal tap, with a pause button bottom-left |
 | `components/Invitation/ChapterNav.tsx` | Chapter dots on the right edge: progress and jump to a section |
@@ -215,13 +215,15 @@ A story entry can show a short film in place of its photos (the proposal, in
 It is a short clip in a portrait (9:16) frame that plays silently by itself
 while it is on screen and loops, like a photo that comes alive; the
 invitation's song carries on over it. Browsers allow that only because it
-starts muted. It rests when scrolled away, a tap pauses or plays it, and
-reduced motion (or an iPhone in Low Power Mode) shows the poster still.
+starts muted. It rests when scrolled away, and reduced motion (or an iPhone in
+Low Power Mode) shows the poster still.
 
-A speaker button in its corner plays the clip once from the start with its own
-sound; the song pauses meanwhile and returns when the clip ends, is muted
-again, or is scrolled away. The button's labels are `story.soundOn` and
-`story.soundOff` in `data/content.json`.
+The guest has the browser's own player controls: pause, drag to any point,
+sound, and full screen. Turning the sound on carries on from where the clip is
+(it doesn't restart); the song pauses meanwhile and returns when the clip is
+muted again, ends, or is scrolled away. The player's "Download" option and the
+right-click "Save video as" are switched off. That only removes the option:
+the clip is a public file, so someone determined can still save it.
 
 Never put a phone's original recording in `public/`: the proposal was 2.3 GB of
 4K HDR, far past GitHub's 100 MB limit. Keep originals in `originals/`

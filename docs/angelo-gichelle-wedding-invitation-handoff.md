@@ -1015,9 +1015,12 @@ clip shown in place of its photos, used for the proposal in "The
 Question" (80 seconds, 0:20 to 1:40 of the recording: the two of them at
 the window, then the kneel and the yes). It sits in a portrait
 frame, plays silently by itself while on screen and loops, with the song
-carrying on over it; reduced motion shows the poster still. A speaker
-button in its corner plays it once from the start with its own sound,
-during which the song pauses.
+carrying on over it; reduced motion shows the poster still. The guest
+has the browser's own player controls (pause, scrub, sound, full screen;
+download switched off). Turning the sound on carries on from where the
+clip is, and the song pauses until it is muted again, ends or leaves the
+screen (2026-10-13; a speaker button of our own, which restarted the
+clip, was replaced).
 
 ## events.json
 

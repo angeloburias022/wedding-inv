@@ -14,12 +14,7 @@ export function Timeline({ entries, copy }: TimelineProps) {
       <SectionHeader id="story-title" eyebrow={copy.eyebrow} title={copy.title} />
       <ol className="mx-auto flex max-w-5xl flex-col gap-24 md:gap-32">
         {entries.map((entry, index) => (
-          <TimelineEntry
-            key={`${entry.date}-${entry.title}`}
-            entry={entry}
-            flipped={index % 2 === 1}
-            soundLabels={{ on: copy.soundOn, off: copy.soundOff }}
-          />
+          <TimelineEntry key={`${entry.date}-${entry.title}`} entry={entry} flipped={index % 2 === 1} />
         ))}
       </ol>
     </section>

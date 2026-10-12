@@ -736,3 +736,24 @@ the dinner venue, the guest list) and the Figma polish continue alongside.
 - Testing rule refined: tests are updated with each change but only run
   when asked for or at the end of a piece of work, to keep sessions
   short.
+- First GitHub run of the tests passed (6 min 45 s), with one test flaky
+  in WebKit and a warning about outdated action versions. The test was
+  steadied and the actions updated.
+- Proposal clip controls, at Angelo's request. Turning the sound on used
+  to restart the clip, which made sense at 32 seconds but not at 80: a
+  guest unmuting at the kneel was sent back to the start. Now the sound
+  comes on from where the clip is, and the guest has the browser's own
+  player controls (pause, scrub, sound, full screen). The player's
+  download option and the right-click save are switched off; that removes
+  the option but can't stop a determined person, since the clip is a
+  public file.
+- Our own speaker button was removed again: a screenshot in WebKit showed
+  iPhone-style controls put their mute and volume in the same top-right
+  corner, under our button, and the other corners hold controls too.
+  Sound is now followed through the player (`volumechange`), so the song
+  still steps aside however the guest unmutes.
+- Bug found by the new tests and fixed: if the sound was turned on while
+  less than 40% of the clip was showing, the clip kept playing with sound
+  after it was scrolled away, and the song never came back. The clip now
+  starts when 40% is on screen and stops only when none of it is.
+- Story tests rewritten for the above: 7 per browser, all passing.
