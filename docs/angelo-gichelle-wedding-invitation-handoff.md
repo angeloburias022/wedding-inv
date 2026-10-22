@@ -413,7 +413,9 @@ The intended sections are:
 
 ## Opening
 
-Personalized invitation.
+Personalized invitation: the envelope, then (once opened) the couple's
+portrait from the October 2026 photoshoot, one screen with their names and
+the date under it (added 2026-10-21).
 
 ## US
 
@@ -530,6 +532,22 @@ caption, and a scrolling timeline builds towards "And now...".
 Photos are casual phone snaps. A milestone may have several photos; they
 become a swipeable carousel (counter, dots, arrows on desktop) inside the
 same layout. See §31 for how frames fit each photo.
+
+The couple's photoshoot (October 2026) belongs to "And Now..." only: it
+shows the couple now. Earlier milestones use real photos from their years,
+phone shots included (decided 2026-10-21).
+
+Story pages (2026-10-21): each milestone is one screen, centred, with the
+photo sized so it and its words fit together (photo above the words on a
+phone, beside them on desktop; checked down to a 375×667 phone). On touch
+screens the scroll settles on a milestone when the guest stops near one
+(CSS `scroll-snap-type: y proximity`): a fling still carries past, and
+only the portrait and the milestones are snap points, so the rest of the
+page scrolls freely. A milestone's photo and words reveal together. Not
+with a mouse or trackpad: their small scroll steps were each pulled back
+to the current page, so the page felt stuck; there the milestones are one
+screen each but not snapped. Strict snapping (every swipe exactly one
+milestone) was offered and not chosen.
 
 Recommended number of milestones:
 
@@ -874,6 +892,7 @@ Example:
     "bride": "Gichelle",
     "displayName": "Angelo & Gichelle"
   },
+  "portrait": "/images/opening.webp",
   "date": {
     "display": "10 February 2027",
     "iso": "2027-02-10",
@@ -1726,7 +1745,8 @@ Suggested values:
     slides up out of the envelope (0.9s) → **the card becomes the screen**:
     it grows to fill the viewport (0.9s) while its writing fades and its
     paper turns into the page colour → the invitation swaps in beneath with
-    no fade → the sheet dissolves (0.7s) as "Our story / Us" rises in. No
+    no fade → the sheet dissolves (0.7s) as the couple's portrait rises in
+(until 2026-10-21, "Our story / Us"). No
     extra title sequence or letterboxing after the envelope (decided
     2026-10-01; that decision also ruled out music, reversed 2026-10-03,
     see the next point). Reduced motion: straight to the invitation.
@@ -1762,6 +1782,11 @@ Suggested values:
     scrolls down most of a screen. No auto-scrolling: guests stay in
     control of the pace (decided 2026-10-01). Reduced motion: the line is
     shown still.
+-   Story pages (2026-10-21): on touch screens the scroll settles on the
+    portrait or a milestone when the guest stops near one (§7). Gentle,
+    not forced: it only finishes a scroll the guest started, so the
+    2026-10-01 rule still holds. A milestone's photo and words fade and
+    rise together once 30% of it is in view.
 
 Avoid:
 
@@ -2216,6 +2241,19 @@ Venue in portrait           height capped at 75% of the screen
 
 Supply JPEG or WebP at full quality (no pre-conversion; `next/image`
 resizes and serves WebP). Not HEIC. Frames never shift on load.
+
+Exception, the photoshoot (2026-10-21): its photos are 2:3, and the
+automatic 4:5 centre crop cut too close to the heads, so each is cropped by
+hand to 4:5 and saved as 1280×1600 WebP with its metadata stripped.
+Originals stay in the git-ignored `originals/photos/`.
+
+``` text
+OpeningPortrait   4:5, cover; full width on a phone, max 28rem,
+                  never taller than the screen less 12rem
+Story frame       as above, but sized so photo and words share one screen:
+                  height up to the screen less 20rem on a phone,
+                  less 8rem on desktop
+```
 
 ------------------------------------------------------------------------
 

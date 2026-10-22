@@ -134,6 +134,25 @@ html {
   scroll-behavior: smooth;
 }
 
+/*
+ * On touch screens, the opening portrait and each story milestone are pages
+ * the scroll settles on when the guest stops near one. "proximity", not
+ * "mandatory": a fling still carries past, and the rest of the page (the day,
+ * the venue, the RSVP form) has no snap points, so it scrolls freely.
+ * Not with a mouse or trackpad: they scroll in small steps, and each step
+ * ended near the current page and was pulled back to it, so the page felt
+ * stuck. There the milestones are still one screen each, just not snapped.
+ */
+@media (pointer: coarse) {
+  html {
+    scroll-snap-type: y proximity;
+  }
+}
+
+.story-snap {
+  scroll-snap-align: center;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

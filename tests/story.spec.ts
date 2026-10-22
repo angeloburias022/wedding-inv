@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { expectSongPlaying, expectSongQuiet, openEnvelope, several } from "./support/invitation";
+import { expectSongPlaying, expectSongQuiet, openEnvelope, several, story } from "./support/invitation";
 
 const clip = (page: Page) => page.locator("#story video");
 const clipState = (page: Page) =>
@@ -79,6 +79,95 @@ test.describe("the proposal clip", () => {
       await clip(page).scrollIntoViewIfNeeded();
       await page.waitForTimeout(1_500);
       expect((await clipState(page)).playing).toBe(false);
+    });
+  });
+});
+
+test.describe("the story photos", () => {
+  const withPhotos = story.filter((entry) => entry.images.length > 1);
+
+  for (const entry of withPhotos) {
+    test(`"${entry.title}" shows its photos in a carousel the guest can swipe`, async ({ page }) => {
+      await openEnvelope(page, several.code);
+      const carousel = page.getByRole("group", { name: `${entry.title}, ${entry.location}`, exact: true });
+      await carousel.scrollIntoViewIfNeeded();
+
+      const slides = carousel.getByRole("group", { name: / of / });
+      await expect(slides).toHaveCount(entry.images.length);
+      const first = slides.first().locator("img");
+      await expect.poll(() => first.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
+      await expect(page.getByText(`1/${entry.images.length}`, { exact: true })).toBeVisible();
+
+      // What a swipe does.
+      await carousel.evaluate((track) => track.scrollTo({ left: track.clientWidth }));
+      await expect(page.getByText(`2/${entry.images.length}`, { exact: true })).toBeVisible();
+    });
+  }
+});
+
+test.describe("the story pages", () => {
+  /** Scrolls the way a guest stops just short of a milestone (0 = the first), then lets go. */
+  async function stopNear(page: Page, index: number) {
+    await page.evaluate((i) => {
+      const target = document.querySelectorAll("#story li.story-snap")[i];
+      const box = target.getBoundingClientRect();
+      const centred = window.scrollY + box.top + box.height / 2 - window.innerHeight / 2;
+      window.scrollTo({ top: centred - window.innerHeight * 0.15, behavior: "instant" });
+    }, index);
+  }
+
+  test("settle on each milestone, whole on the screen, when the guest stops near it", async ({ page }) => {
+    await openEnvelope(page, several.code);
+    const count = await page.locator("#story li.story-snap").count();
+    expect(count).toBe(story.length);
+
+    for (let i = 0; i < count; i++) {
+      await stopNear(page, i);
+      const milestone = page.locator("#story li.story-snap").nth(i);
+      const viewport = page.viewportSize()!;
+      await expect
+        .poll(async () => {
+          const box = (await milestone.boundingBox())!;
+          return Math.abs(box.y + box.height / 2 - viewport.height / 2);
+        }, { message: `"${story[i].title}" settles in the middle` })
+        .toBeLessThan(4);
+    }
+  });
+
+  test("leave the rest of the page to scroll freely", async ({ page }) => {
+    await openEnvelope(page, several.code);
+    await page.locator("#rsvp").scrollIntoViewIfNeeded();
+    await page.evaluate(() => window.scrollBy({ top: -120, behavior: "instant" }));
+    const stopped = await page.evaluate(() => window.scrollY);
+    await page.waitForTimeout(1_000);
+    expect(await page.evaluate(() => window.scrollY)).toBe(stopped);
+  });
+
+  test.describe("with a mouse", () => {
+    test.use({ viewport: { width: 1440, height: 900 }, isMobile: false, hasTouch: false });
+
+    test("scroll a notch at a time, without being pulled back", async ({ page }) => {
+      await openEnvelope(page, several.code);
+      await page.mouse.move(700, 450);
+      for (let notch = 1; notch <= 5; notch++) {
+        await page.mouse.wheel(0, 100);
+        await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThanOrEqual(notch * 100 - 5);
+        await page.waitForTimeout(500);
+        expect(await page.evaluate(() => window.scrollY)).toBeGreaterThanOrEqual(notch * 100 - 5);
+      }
+    });
+  });
+
+  test.describe("on a small phone", () => {
+    test.use({ viewport: { width: 375, height: 667 } });
+
+    test("fit each milestone, photo and words, on one screen", async ({ page }) => {
+      await openEnvelope(page, several.code);
+      const milestones = page.locator("#story li.story-snap");
+      for (let i = 0; i < (await milestones.count()); i++) {
+        const box = (await milestones.nth(i).boundingBox())!;
+        expect(box.height, `"${story[i].title}" fits`).toBeLessThanOrEqual(667 + 1);
+      }
     });
   });
 });

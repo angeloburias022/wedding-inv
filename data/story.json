@@ -32,7 +32,7 @@
     "date": "2027",
     "title": "And Now…",
     "location": "10 February 2027 · Melbourne",
-    "images": [],
+    "images": ["/images/story/2027-and-now-1.webp", "/images/story/2027-and-now-2.webp", "/images/story/2027-and-now-3.webp"],
     "caption": "After all these years, we get to call this forever."
   }
 ]

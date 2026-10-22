@@ -54,8 +54,8 @@ export function StoryVideo({ src, poster, alt }: StoryVideoProps) {
   }, []);
 
   return (
-    // Never taller than most of the screen, on a phone or beside the text on desktop.
-    <div className="relative mx-auto aspect-[9/16] w-[min(100%,45svh)] overflow-hidden bg-surface">
+    // As wide as its milestone allows; the milestone keeps it within the screen.
+    <div className="relative aspect-[9/16] w-full overflow-hidden bg-surface">
       <video
         ref={ref}
         src={src}

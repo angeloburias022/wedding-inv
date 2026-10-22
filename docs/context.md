@@ -40,7 +40,7 @@ guide, `docs/GOOGLE-SHEETS-RSVP.md`.
 
 ## Page flow
 
-Personalised opening → US (5–7 milestone timeline) → THE DAY (ceremony
+Personalised opening (envelope) → the couple's portrait → US (5–7 milestone timeline) → THE DAY (ceremony
 2:00 PM at the Old Treasury Building, then "Dinner & Celebration" KBBQ at 6:00 PM) → THE PLACE (venue kept
 secondary) → RSVP → Closing. One continuous vertical scroll.
 
@@ -220,9 +220,12 @@ skip link for returning guests, the ceremony in Melbourne and Manila time,
 and the song's reload, Back, skip and landing behaviour. Since 2026-10-07:
 the proposal clip in the story, with a speaker button. Since 2026-10-13:
 RSVPs saved to the real Google Sheet with an email for each, and an
-automated test suite (`npm test`).
+automated test suite (`npm test`). Since 2026-10-21: the first photos from
+the couple's photoshoot (three on "And Now…"), the opening portrait after
+the envelope, and story pages (one screen per milestone, settling on
+touch screens).
 
-**Placeholders still in use:** story photos (empty frames), KBBQ name and
+**Placeholders still in use:** story photos (empty frames, except "And Now…"), KBBQ name and
 address, the livestream link, venue directions,
 story text beyond the handoff examples, fonts (Cormorant + Jost),
 sample guests.
@@ -265,7 +268,11 @@ the dinner venue, the guest list) and the Figma polish continue alongside.
 - QR card: a higher-resolution version of the card artwork for print (the
   current one is 1024×1536, upscaled ×2), whether the guest's name goes on
   the card, and a scan test from a printed proof with a phone
-- Final US milestones: dates, titles, captions, photos
+- Final US milestones: dates, titles, captions, photos. Photoshoot
+  done 2026-10-20; the folders for the photos are ready in
+  `originals/photos/` (see the 2026-10-21 log). Still to do: pick the
+  photos, find real ones from 2020–2025, and check with the
+  photographer about online use and a credit
 - Dress code, parking, transport details
 - Create the unlisted YouTube stream and paste its link into
   `onlineCeremony.url`; confirm the start time; pick who runs the camera
@@ -757,3 +764,83 @@ the dinner venue, the guest list) and the Figma polish continue alongside.
   after it was scrolled away, and the song never came back. The clip now
   starts when 40% is on screen and stops only when none of it is.
 - Story tests rewritten for the above: 7 per browser, all passing.
+
+### 2026-10-21
+
+- Couple photoshoot done on 2026-10-20. Agreed how to use it: the shoot
+  shows the couple now, so it goes in "And Now…" (2027, 3–5 photos in its
+  carousel), plus one portrait after the envelope opens and one quiet
+  photo in the closing. The earlier milestones (2020, 2022, 2025) should
+  have real photos from those years, phone shots included; a detail shot
+  from the shoot can fill a gap, but not a posed portrait. About 6–8
+  photos on the whole page; the rest belong in an online album.
+- Folders for the source photos created in `originals/photos/`
+  (git-ignored, with a `README.md` guide inside):
+  `photoshoot-2026/` (the full set as delivered, never edited),
+  `story/2020-the-beginning/`, `story/2022-growing-together/`,
+  `story/2025-across-the-distance/`, `story/2027-and-now/`, `opening/`
+  and `closing/`. Picks are copied, not moved, out of the full set, and
+  named `1-`, `2-`… for carousel order. "The Question" uses the proposal
+  clip and has no folder.
+- Planned output: about 1600 px on the long side, WebP, saved as
+  `public/images/story/<milestone>-<n>.webp`, `public/images/opening.webp`
+  and `public/images/closing.webp`. The opening and closing photos need
+  new places in the page; not built yet.
+- First photos in: three from the shoot on "And Now…" (2027), as a
+  carousel. `1-IMG_3191` (holding hands, the candid one) first, then
+  `2-IMG_3150` (the portrait, looking at the camera), then `3-IMG_3126`
+  (Gichelle standing behind the orange chair). Each was cropped by
+  hand from 2:3 to 4:5, keeping the heads and losing some rug, rather than
+  letting the frame cut from the centre; then 1280×1600, WebP quality 82,
+  metadata stripped (camera and location data; the source is sRGB, so no
+  colour shift). About 100 KB each.
+- Story tests: a new one per milestone with several photos (read from
+  `data/story.json`), checking the photos load and that a swipe moves
+  the counter on (1/3 to 2/3). All 16 story tests pass in both browsers.
+- Opening portrait built, at Angelo's choice of IMG_3126 (both looking at
+  the camera, the orange chair). After the envelope opens, guests used to
+  land on "Our story" and the empty 2020 frame; now the first screen is
+  the portrait, framed at 4:5 (full width on a phone, 28rem wide on
+  desktop), with "Angelo & Gichelle" and the date under it, and "Our
+  story" just showing below. `components/Invitation/Portrait.tsx`, set
+  by `portrait` in `data/wedding.json` (`null` leaves it out). It is
+  preloaded with the envelope, so it is there the moment the seal is
+  tapped. Same crop as "And Now…" photo 3, saved as
+  `public/images/opening.webp`; the original is copied to
+  `originals/photos/opening/`.
+- IMG_3126 now appears twice (the portrait and the third "And Now…"
+  photo). Fine for now; swap one out when more photos from the shoot are
+  picked.
+- Envelope tests: a new one checks the portrait loads, is on screen once
+  the envelope opens, and sits above the story.
+- Story pages, at Angelo's request. The story scrolled freely, so a
+  milestone often stopped half on screen, and its words only faded in
+  once they were 10% inside the screen, so they lagged behind a photo
+  that had already landed. Talked through first: snapping the whole page
+  was ruled out (it pulls the page away while a guest types in the RSVP,
+  makes a milestone's bottom hard to reach on small phones where it
+  doesn't fit, and fights hard flings). Agreed and built:
+  - The portrait and each milestone are pages the scroll settles on when
+    the guest stops near one (`scroll-snap-type: y proximity` on `html`,
+    `.story-snap` in `globals.css`). A fling still carries past; the day,
+    the venue, the RSVP and the closing have no snap points and scroll
+    freely.
+  - Each milestone is one screen (`min-h-svh`), centred, with the photo
+    sized so it and its words fit: above them on a phone (about 20rem kept
+    for the words and the carousel dots), beside them on desktop. The
+    proposal clip is sized the same way (it used to be up to 80% of the
+    screen tall on its own).
+  - A milestone's photo and words now reveal together, once 30% of it is
+    in view (`RevealGroup` / `RevealItem` in `components/Motion/Reveal.tsx`).
+- Story tests: a milestone settles in the middle when the guest stops
+  near it; the RSVP area stays where the guest left it; every milestone
+  fits on a 375×667 phone. Full suite: 96 passing in both browsers.
+- Fix, reported by Angelo ("not smooth on web"): with a mouse the page was
+  stuck on the portrait. A wheel notch moves about 100px; each one ended
+  near the current page and the snapping pulled it back (measured: 0 → 36
+  → 0, thirty notches in a row). Snapping is now for touch screens only
+  (`@media (pointer: coarse)`); a mouse or trackpad scrolls freely, and the
+  milestones are still one screen each. On a phone, a short nudge (under
+  about 250px) still settles back on the page; a longer drag or a flick
+  moves on. New test: with a mouse, five notches scroll 500px with nothing
+  pulled back (both browsers).

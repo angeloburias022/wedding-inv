@@ -11,6 +11,8 @@ export type Wedding = {
     bride: string;
     displayName: string;
   };
+  /** The couple's photo, the first thing after the envelope opens; null leaves it out. */
+  portrait: string | null;
   date: {
     display: string;
     iso: string;

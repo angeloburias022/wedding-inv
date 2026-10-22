@@ -3,6 +3,7 @@ import { ChapterNav } from "@/components/Invitation/ChapterNav";
 import { Closing } from "@/components/Invitation/Closing";
 import { InvitationGate } from "@/components/Invitation/InvitationGate";
 import { Opening } from "@/components/Invitation/Opening";
+import { Portrait } from "@/components/Invitation/Portrait";
 import { ScrollHint } from "@/components/Invitation/ScrollHint";
 import { Music } from "@/components/Music/Music";
 import { VenueCard } from "@/components/Place/VenueCard";
@@ -76,6 +77,9 @@ export default async function InvitePage({ params }: PageProps<"/invite/[code]">
             .filter((chapter) => chapter.on)
             .map(({ id, label }) => ({ id, label }))}
         />
+        {wedding.portrait && (
+          <Portrait src={wedding.portrait} coupleName={wedding.couple.displayName} date={wedding.date.display} />
+        )}
         {sections.story && <Timeline entries={story} copy={content.story} />}
         {sections.day && (
           <Schedule

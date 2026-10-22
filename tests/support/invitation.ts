@@ -9,6 +9,7 @@ const read = (file: string) => JSON.parse(readFileSync(file, "utf8"));
 export const guests: Guest[] = read("data/guests.json");
 export const content = read("data/content.json");
 export const wedding = read("data/wedding.json");
+export const story: { title: string; location: string; images: string[] }[] = read("data/story.json");
 
 export function guestOfType(type: Guest["type"]): Guest {
   const guest = guests.find((candidate) => candidate.type === type);

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { arrive, content, guests, nameOnEnvelope, openEnvelope, seal, several, skipLink } from "./support/invitation";
+import { arrive, content, guests, nameOnEnvelope, openEnvelope, seal, several, skipLink, wedding } from "./support/invitation";
 
 test.describe("the envelope", () => {
   for (const guest of guests) {
@@ -22,6 +22,18 @@ test.describe("the envelope", () => {
     await expect(page.getByRole("heading", { name: content.story.title, exact: true })).toBeVisible();
     await expect(page.locator("#day")).toBeAttached();
     await expect(page.locator("#rsvp")).toBeAttached();
+  });
+
+  test("opens onto the couple's portrait, before the story", async ({ page }) => {
+    test.skip(!wedding.portrait, "no portrait in wedding.json");
+    await openEnvelope(page, several.code);
+    const portrait = page.getByRole("region", { name: wedding.couple.displayName, exact: true });
+    const photo = portrait.getByRole("img", { name: wedding.couple.displayName, exact: true });
+    await expect(photo).toBeInViewport();
+    await expect.poll(() => photo.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
+    // It comes first: the story starts below it.
+    const [photoBox, storyBox] = await Promise.all([photo.boundingBox(), page.locator("#story").boundingBox()]);
+    expect(photoBox!.y).toBeLessThan(storyBox!.y);
   });
 
   test("goes back to the sealed envelope with the browser's Back button", async ({ page }) => {

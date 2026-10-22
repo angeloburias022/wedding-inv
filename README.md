@@ -93,7 +93,9 @@ Messenger's built-in browser. Check those by hand before sending invitations.
 | `components/Decor/FloralCorners.tsx` | Fixed floral corners behind every page |
 | `components/Place/VenueArch.tsx` | Venue photo revealed through an opening arch |
 | `components/Place/VenueFilm.tsx` | Scroll-driven venue clip (used when `location.video` is set) |
+| `components/Story/TimelineEntry.tsx` | One story milestone: one screen, photo and words sized to fit together |
 | `components/Story/PhotoCarousel.tsx` | Swipeable photos when a story entry has several |
+| `components/Motion/Reveal.tsx` | Fade-and-rise on scroll; `RevealGroup` reveals a milestone's photo and words together |
 | `components/Story/StoryVideo.tsx` | A short clip for a story entry (the proposal): plays silently by itself in view, with the browser's player controls |
 | `components/Invitation/Envelope.tsx` | The guest's opening: sealed envelope that opens into the invitation; returning guests also get a "Skip to the wedding day" link |
 | `components/Music/Music.tsx` | The song: starts on the seal tap, with a pause button bottom-left |
@@ -108,7 +110,8 @@ Messenger's built-in browser. Check those by hand before sending invitations.
 | `components/WeddingDay/LiveStream.tsx` | Ceremony livestream: YouTube link, then embedded player on the day |
 | `lib/youtube.ts` | Video ID from a YouTube link, for the embedded player |
 | `lib/photos.ts` | Reads photo dimensions at build time so frames fit each photo |
-| `public/images/` | Photos (story, venue) |
+| `components/Invitation/Portrait.tsx` | The couple's photo, first after the envelope opens (`portrait` in `wedding.json`) |
+| `public/images/` | Photos (opening portrait, story in `story/`, venue) |
 | `public/decor/` | Decorative artwork (floral corners) |
 | `scripts/rsvp-sheet.gs` | The Google Apps Script that saves RSVPs to the Sheet and emails a summary |
 | `scripts/qr-card-template.png`, `scripts/qr-card-monogram.png` | Card design and monogram the per-guest QR cards are built from |
@@ -116,7 +119,7 @@ Messenger's built-in browser. Check those by hand before sending invitations.
 | `docs/` | The spec, the running context, the Google Sheets RSVP guide and the parked features (see the table at the top) |
 | `tests/`, `playwright.config.ts` | Automated tests of the guest journey (`npm test`) |
 | `.github/workflows/test.yml` | Runs typecheck, lint and the tests on GitHub for every push |
-| `originals/` | Full-size source media, git-ignored (the proposal recording) |
+| `originals/` | Full-size source media, git-ignored: the proposal recording, and `photos/` for the photoshoot and story photos (guide in `originals/photos/README.md`) |
 | `scripts/add-guest.mts` | Adds a guest with a new random code |
 | `scripts/remove-guest.mts` | Removes a guest by code |
 | `scripts/generate-qrs.mts` | QR generator (handoff §18) |
@@ -191,10 +194,24 @@ Put photos in `public/images/` and reference them from the data files:
   shows on its own; several become a swipeable carousel (counter, dots, and
   arrows on desktop). An empty list shows a placeholder frame.
 - **Venue:** `location.image` in `data/wedding.json`.
+- **Opening portrait:** `portrait` in `data/wedding.json`, the couple's photo
+  shown first once the envelope opens, framed at 4:5 with the names and date
+  under it. `null` leaves it out.
+
+The photoshoot pictures were cropped by hand to 4:5 and saved as WebP
+(1280×1600) instead, because the automatic centre crop cut too close to the
+heads. The originals and the folder layout are in `originals/photos/` (see
+its `README.md`).
 
 Use JPEG (or WebP) straight from the phone at full quality; don't pre-convert
 or shrink. `next/image` resizes each photo per screen and serves WebP.
 Browsers can't show HEIC, so export iPhone photos as JPEG.
+
+Each story milestone is one screen, with its photo sized so photo and words
+fit together. On touch screens the scroll settles on a milestone (and on the
+opening portrait) when the guest stops near one; with a mouse it scrolls
+freely. The snapping is `scroll-snap-type: y proximity` in `app/globals.css`,
+inside `@media (pointer: coarse)`; each milestone carries `.story-snap`.
 
 Frames take each photo's own shape, read at build time by `lib/photos.ts`
 (EXIF rotation included), clamped like Instagram: tall portraits are trimmed
