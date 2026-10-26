@@ -106,9 +106,10 @@ test.describe("the story photos", () => {
 });
 
 test.describe("the story pages", () => {
-  /** Scrolls the way a guest stops just short of a milestone (0 = the first), then lets go. */
+  /** Scrolls by touch the way a guest stops just short of a milestone (0 = the first), then lets go. */
   async function stopNear(page: Page, index: number) {
     await page.evaluate((i) => {
+      window.dispatchEvent(new Event("touchstart"));
       const target = document.querySelectorAll("#story li.story-snap")[i];
       const box = target.getBoundingClientRect();
       const centred = window.scrollY + box.top + box.height / 2 - window.innerHeight / 2;
@@ -143,17 +144,55 @@ test.describe("the story pages", () => {
     expect(await page.evaluate(() => window.scrollY)).toBe(stopped);
   });
 
-  test.describe("with a mouse", () => {
-    test.use({ viewport: { width: 1440, height: 900 }, isMobile: false, hasTouch: false });
+  test.describe("with a mouse or trackpad", () => {
+    // A browser that says it has a touch screen, as Chrome on a Mac, touchscreen
+    // laptops and DevTools' phone preview can: what counts is the wheel.
+    test.use({ viewport: { width: 1440, height: 900 }, isMobile: false, hasTouch: true });
 
-    test("scroll a notch at a time, without being pulled back", async ({ page }) => {
+    const milestone = (page: Page, index: number) => page.locator("#story li.story-snap").nth(index);
+    /** How far a milestone's middle is from the middle of the screen (px). */
+    const offCentre = (page: Page, index: number) =>
+      milestone(page, index).evaluate((el) => {
+        const box = el.getBoundingClientRect();
+        return Math.abs(box.top + box.height / 2 - window.innerHeight / 2);
+      });
+
+    test("glide a milestone at a time, onwards with each notch and back with a notch up", async ({ page }) => {
       await openEnvelope(page, several.code);
+      // Even after a touch earlier on: a laptop with a touchscreen.
+      await page.evaluate(() => window.dispatchEvent(new Event("touchstart")));
       await page.mouse.move(700, 450);
-      for (let notch = 1; notch <= 5; notch++) {
+
+      await page.mouse.wheel(0, 100);
+      await expect.poll(() => offCentre(page, 0), { message: `on to "${story[0].title}"` }).toBeLessThan(4);
+      await page.mouse.wheel(0, 100);
+      await expect.poll(() => offCentre(page, 1), { message: `on to "${story[1].title}"` }).toBeLessThan(4);
+      await page.mouse.wheel(0, -100);
+      await expect.poll(() => offCentre(page, 0), { message: `back to "${story[0].title}"` }).toBeLessThan(4);
+      await page.waitForTimeout(800);
+
+      // Changing their mind mid-glide (easy on a trackpad): the latest scroll decides.
+      await page.mouse.wheel(0, 100);
+      await page.waitForTimeout(250);
+      await page.mouse.wheel(0, -100);
+      await expect.poll(() => offCentre(page, 0), { message: `back again to "${story[0].title}"` }).toBeLessThan(4);
+    });
+
+    test("scroll freely past the last milestone", async ({ page }) => {
+      await openEnvelope(page, several.code);
+      await milestone(page, story.length - 1).evaluate((el) => el.scrollIntoView({ block: "center", behavior: "instant" }));
+      await page.waitForTimeout(400);
+      await page.mouse.move(700, 450);
+      const start = await page.evaluate(() => window.scrollY);
+
+      for (let notch = 1; notch <= 3; notch++) {
         await page.mouse.wheel(0, 100);
-        await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThanOrEqual(notch * 100 - 5);
+        await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThanOrEqual(start + notch * 100 - 5);
         await page.waitForTimeout(500);
-        expect(await page.evaluate(() => window.scrollY)).toBeGreaterThanOrEqual(notch * 100 - 5);
+        // Not pulled back, and not carried anywhere either.
+        const y = await page.evaluate(() => window.scrollY);
+        expect(y).toBeGreaterThanOrEqual(start + notch * 100 - 5);
+        expect(y).toBeLessThanOrEqual(start + notch * 100 + 5);
       }
     });
   });

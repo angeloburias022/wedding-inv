@@ -8,13 +8,13 @@ type PortraitProps = {
 
 /**
  * The first thing after the envelope opens: the couple, before the story
- * begins. One screen, and the first page the scroll settles on (globals.css).
+ * begins. One screen, and the first page the scroll settles on (StorySnap).
  */
 export function Portrait({ src, coupleName, date }: PortraitProps) {
   return (
     <section
       aria-label={coupleName}
-      className="flex min-h-svh snap-start flex-col items-center justify-center gap-6 px-6 py-12"
+      className="story-snap flex min-h-svh flex-col items-center justify-center gap-6 px-6 py-12"
     >
       {/* 4:5, leaving about 12rem of the screen for the names and some air. */}
       <div className="w-[min(100%,28rem,calc((100svh-12rem)*0.8))]">

@@ -95,6 +95,7 @@ Messenger's built-in browser. Check those by hand before sending invitations.
 | `components/Place/VenueFilm.tsx` | Scroll-driven venue clip (used when `location.video` is set) |
 | `components/Story/TimelineEntry.tsx` | One story milestone: one screen, photo and words sized to fit together |
 | `components/Story/PhotoCarousel.tsx` | Swipeable photos when a story entry has several |
+| `components/Story/StorySnap.tsx` | Settles the story on each page: browser snapping by touch, a glide to the next page with a mouse or trackpad |
 | `components/Motion/Reveal.tsx` | Fade-and-rise on scroll; `RevealGroup` reveals a milestone's photo and words together |
 | `components/Story/StoryVideo.tsx` | A short clip for a story entry (the proposal): plays silently by itself in view, with the browser's player controls |
 | `components/Invitation/Envelope.tsx` | The guest's opening: sealed envelope that opens into the invitation; returning guests also get a "Skip to the wedding day" link |
@@ -208,10 +209,21 @@ or shrink. `next/image` resizes each photo per screen and serves WebP.
 Browsers can't show HEIC, so export iPhone photos as JPEG.
 
 Each story milestone is one screen, with its photo sized so photo and words
-fit together. On touch screens the scroll settles on a milestone (and on the
-opening portrait) when the guest stops near one; with a mouse it scrolls
-freely. The snapping is `scroll-snap-type: y proximity` in `app/globals.css`,
-inside `@media (pointer: coarse)`; each milestone carries `.story-snap`.
+fit together, and the scroll settles on a milestone (and on the opening
+portrait), all handled by `components/Story/StorySnap.tsx` on the pages
+marked `.story-snap`:
+
+- **By touch** (phones): the browser's own snapping, `scroll-snap-type: y
+  proximity` under `html.story-snapping` in `app/globals.css`. A touch adds
+  the class.
+- **Mouse or trackpad** (Mac): the class comes off as soon as the mouse moves,
+  since browser snapping pulled each small step back. Instead, once the scroll
+  stops inside the story, the page glides to the next page in the guest's
+  direction; scrolling again mid-glide turns it round. Past the last
+  milestone the page scrolls freely.
+
+What the guest does decides it, not the browser's "touch screen" answer,
+which is wrong on some Macs.
 
 Frames take each photo's own shape, read at build time by `lib/photos.ts`
 (EXIF rotation included), clamped like Instagram: tall portraits are trimmed

@@ -844,3 +844,57 @@ the dinner venue, the guest list) and the Figma polish continue alongside.
   about 250px) still settles back on the page; a longer drag or a flick
   moves on. New test: with a mouse, five notches scroll 500px with nothing
   pulled back (both browsers).
+
+### 2026-10-26
+
+- Bug, reported by Angelo after `1d29e6e` ("this does not work on web"):
+  on his Mac the page was still stuck on the portrait. Chrome there
+  reports a touch screen (`pointer: coarse` is true) even with a mouse,
+  so the touch-only rule still switched snapping on (measured: eight
+  wheel notches, page stayed at 0). The test had passed because its
+  browser said "mouse". DevTools' phone preview and touchscreen laptops
+  answer "touch" too.
+- Fix: snapping now follows what the guest does, not what the browser
+  says. `components/Story/StorySnap.tsx` adds `story-snapping` to `html`
+  on a touch and removes it when a mouse moves or a wheel or trackpad
+  scrolls; `globals.css` snaps only under `html.story-snapping`. Mouse
+  movement counts because Chrome starts a wheel scroll before the page
+  hears the wheel event, so the first notch after a touch was otherwise
+  pulled back. Checked on the dev server: desktop and DevTools phone
+  preview both scroll 100px a notch.
+- Tests: the mouse test now uses a browser that claims a touch screen,
+  and touches first (a touchscreen laptop); the settle test touches before
+  scrolling. Full suite: 98 passing locally.
+- Guests are mostly on iPhone, Mac and Android (Angelo, 2026-10-26).
+- GitHub's test run fails on `1d29e6e` and already failed on `bc8c167`
+  (2026-10-13): two proposal-clip tests, in WebKit on Linux only ("lets
+  the guest skip ahead", where seeking to 0:30 never lands, and "goes
+  quiet again when scrolled away with the sound on", where the clip keeps
+  playing with sound). They pass on the Mac. Not caused by the story
+  pages; not yet investigated (a Docker run with Playwright's Linux image
+  was started and stopped at Angelo's request).
+- Angelo then asked for the settling on his Mac too ("doesn't settle on
+  pages" in Chrome). Browser snapping can't do it with a wheel (it pulls
+  small steps back), so `StorySnap.tsx` now settles with a mouse or
+  trackpad itself: when the scroll stops inside the story it glides
+  (smooth `scrollTo`) to the next page in the direction of the guest's
+  last wheel or key. One notch moves one page; past "And Now…" it's free;
+  only the guest's own scrolling counts, so the chapter dots and the skip
+  link are unaffected; reduced motion gets no glide. The portrait joined
+  the pages (`.story-snap`).
+- Checked in more browsers: desktop Chrome, desktop WebKit (Safari) and
+  Firefox (installed for this), with a temporary config. Two bugs found
+  and fixed: Firefox doesn't send `scrollend` after a wheel scroll, so a
+  150ms "no scrolling" timer now backs it up; and scrolling again
+  mid-glide went the wrong way (direction was worked out from positions)
+  or, in Chrome, finished the glide before turning round. Direction now
+  comes from the wheel or key itself, and a new scroll stops the glide.
+  Story-page tests repeated 3 times in all five setups: 75 passing.
+- Tests: the mouse tests (in a browser claiming a touch screen) check one
+  notch glides to the next milestone, one notch up glides back, turning
+  round mid-glide lands back, and notches past the last milestone scroll
+  freely. Full suite: 100 passing.
+- At Angelo's request, tests no longer play the song out loud: Chrome runs
+  with `--mute-audio` (`playwright.config.ts`), which silences the
+  speakers but keeps the song playing, so the music tests still check it.
+  WebKit has no such switch.

@@ -8,6 +8,7 @@ import { ScrollHint } from "@/components/Invitation/ScrollHint";
 import { Music } from "@/components/Music/Music";
 import { VenueCard } from "@/components/Place/VenueCard";
 import { RSVP } from "@/components/RSVP/RSVP";
+import { StorySnap } from "@/components/Story/StorySnap";
 import { Timeline } from "@/components/Story/Timeline";
 import { Schedule } from "@/components/WeddingDay/Schedule";
 import { googleCalendarUrl, weddingEvent } from "@/lib/calendar";
@@ -80,6 +81,7 @@ export default async function InvitePage({ params }: PageProps<"/invite/[code]">
         {wedding.portrait && (
           <Portrait src={wedding.portrait} coupleName={wedding.couple.displayName} date={wedding.date.display} />
         )}
+        <StorySnap />
         {sections.story && <Timeline entries={story} copy={content.story} />}
         {sections.day && (
           <Schedule

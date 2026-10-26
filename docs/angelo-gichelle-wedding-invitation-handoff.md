@@ -543,11 +543,23 @@ phone, beside them on desktop; checked down to a 375×667 phone). On touch
 screens the scroll settles on a milestone when the guest stops near one
 (CSS `scroll-snap-type: y proximity`): a fling still carries past, and
 only the portrait and the milestones are snap points, so the rest of the
-page scrolls freely. A milestone's photo and words reveal together. Not
-with a mouse or trackpad: their small scroll steps were each pulled back
-to the current page, so the page felt stuck; there the milestones are one
-screen each but not snapped. Strict snapping (every swipe exactly one
-milestone) was offered and not chosen.
+page scrolls freely. A milestone's photo and words reveal together.
+
+With a mouse or trackpad (Mac), the browser's snapping pulled each small
+scroll step back to the current page, so the page felt stuck. There a
+script settles instead (2026-10-26, at Angelo's request): once the scroll
+stops inside the story, the page glides to the next page in the direction
+the guest was going. One notch or a short swipe moves one page and never
+pulls back; a long swipe carries through several and then settles;
+scrolling again mid-glide stops it and goes the new way. Past "And Now..."
+the page scrolls freely, and the chapter dots and the skip link aren't
+affected (only the guest's own scrolling counts). Which way applies is
+decided by what the guest does (a touch, or moving a mouse, a wheel or a
+trackpad), not by what the browser says it is: Chrome on Angelo's Mac
+reported a touch screen. Checked in Chrome, Safari's engine and Firefox on
+desktop, and on iPhone- and Android-sized phones. Strict snapping by touch
+(every swipe exactly one milestone) was offered and not chosen. Most guests
+are on iPhone, Mac and Android.
 
 Recommended number of milestones:
 
@@ -1782,10 +1794,12 @@ Suggested values:
     scrolls down most of a screen. No auto-scrolling: guests stay in
     control of the pace (decided 2026-10-01). Reduced motion: the line is
     shown still.
--   Story pages (2026-10-21): on touch screens the scroll settles on the
-    portrait or a milestone when the guest stops near one (§7). Gentle,
-    not forced: it only finishes a scroll the guest started, so the
-    2026-10-01 rule still holds. A milestone's photo and words fade and
+-   Story pages (2026-10-21, desktop 2026-10-26): the scroll settles on
+    the portrait or a milestone when the guest stops near one (§7); with a
+    mouse or trackpad it glides on to the next page in the guest's
+    direction (browser's smooth scroll, about half a second to a second).
+    It only finishes a scroll the guest started, so the 2026-10-01 rule
+    still holds. Reduced motion: no glide. A milestone's photo and words fade and
     rise together once 30% of it is in view.
 
 Avoid:

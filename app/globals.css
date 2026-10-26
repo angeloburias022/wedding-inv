@@ -135,18 +135,17 @@ html {
 }
 
 /*
- * On touch screens, the opening portrait and each story milestone are pages
- * the scroll settles on when the guest stops near one. "proximity", not
- * "mandatory": a fling still carries past, and the rest of the page (the day,
- * the venue, the RSVP form) has no snap points, so it scrolls freely.
- * Not with a mouse or trackpad: they scroll in small steps, and each step
- * ended near the current page and was pulled back to it, so the page felt
- * stuck. There the milestones are still one screen each, just not snapped.
+ * While the guest scrolls by touch, the opening portrait and each story
+ * milestone are pages the scroll settles on when the guest stops near one.
+ * "proximity", not "mandatory": a fling still carries past, and the rest of
+ * the page (the day, the venue, the RSVP form) has no snap points, so it
+ * scrolls freely. The class is set by components/Story/StorySnap.tsx, and
+ * never with a mouse wheel or trackpad: their small steps were each pulled
+ * back to the current page, so the page felt stuck. There the milestones are
+ * still one screen each, just not snapped.
  */
-@media (pointer: coarse) {
-  html {
-    scroll-snap-type: y proximity;
-  }
+html.story-snapping {
+  scroll-snap-type: y proximity;
 }
 
 .story-snap {

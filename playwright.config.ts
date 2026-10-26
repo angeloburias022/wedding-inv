@@ -22,7 +22,11 @@ export default defineConfig({
   },
   projects: [
     // Real Chrome rather than Playwright's Chromium: it can play the song and the proposal clip.
-    { name: "phone-chrome", use: { ...devices["Pixel 7"], channel: "chrome" } },
+    // Muted at the speakers only: the song still plays (the tests check it), but silently.
+    {
+      name: "phone-chrome",
+      use: { ...devices["Pixel 7"], channel: "chrome", launchOptions: { args: ["--mute-audio"] } },
+    },
     // WebKit, the engine behind Safari on iPhones.
     { name: "phone-safari", use: { ...devices["iPhone 14"] } },
   ],
