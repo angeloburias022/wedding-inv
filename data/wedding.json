@@ -26,7 +26,7 @@
   "onlineCeremony": {
     "enabled": true,
     "platform": "youtube",
-    "url": null,
+    "url": "https://youtube.com/live/qiXgPE1odmw",
     "startsAt": "2027-02-10T14:00:00+11:00",
     "timeZones": [
       { "label": "Melbourne", "zone": "Australia/Melbourne" },

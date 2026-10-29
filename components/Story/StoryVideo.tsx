@@ -75,8 +75,8 @@ export function StoryVideo({ src, poster, alt }: StoryVideoProps) {
           const audible = !video.muted && video.volume > 0;
           // Silent, it loops; with sound it plays through once.
           video.loop = !audible;
-          if (audible) holdMusic();
-          else releaseMusic();
+          if (audible) holdMusic("clip");
+          else releaseMusic("clip");
         }}
         // Reached the end with the sound on: back to the silent loop, and the song returns.
         onEnded={(event) => {

@@ -34,7 +34,9 @@ let wanted = false;
 /** Set the first time the invitation is open in this page load; a reload is picked up then. */
 let hasOpened = false;
 
-/** Set while something else on the page (the proposal clip, with its sound on) has the sound. */
+/** What else on the page has the sound just now ("clip", "stream"); the song waits for all of them. */
+const holders = new Set<string>();
+/** Whether the song was playing when they took over, so it comes back once they're done. */
 let held = false;
 
 type Saved = { time: number; playing: boolean };
@@ -177,16 +179,18 @@ function playFrom(audio: HTMLAudioElement, seconds: number): Promise<void> {
   });
 }
 
-/** Another sound is starting (the story's clip, unmuted): the song steps aside. */
-export function holdMusic() {
+/** Another sound is starting (the story's clip unmuted, the livestream playing): the song steps aside. */
+export function holdMusic(by: string) {
+  holders.add(by);
   if (!player || player.paused) return;
   held = true;
   player.pause();
 }
 
 /** That sound has stopped: the song comes back, if it was the one we paused and the guest still wants it. */
-export function releaseMusic() {
-  if (!held) return;
+export function releaseMusic(by: string) {
+  holders.delete(by);
+  if (!held || holders.size > 0) return;
   held = false;
   if (wanted) player?.play().catch(() => {});
 }
@@ -194,7 +198,9 @@ export function releaseMusic() {
 function toggleMusic() {
   const audio = player;
   if (!audio) return;
+  // The guest's own choice wins over any hold.
   held = false;
+  holders.clear();
   if (!audio.paused) {
     rememberChoice(false);
     return audio.pause();
@@ -249,11 +255,10 @@ export function Music({ src, startAt = 0, skipStartAt = 0, autoStartAt, title, c
         player.play().catch(() => {});
       }
     };
-    // Focus moving into an iframe is the only sign that an embedded video was tapped.
+    // Focus moving into the livestream's player: it was tapped, so the song steps aside
+    // straight away. Its own play/pause messages then take over (LiveStream.tsx).
     const onBlur = () => {
-      if (!(document.activeElement instanceof HTMLIFrameElement)) return;
-      wanted = false;
-      player?.pause();
+      if (document.activeElement instanceof HTMLIFrameElement) holdMusic("stream");
     };
     document.addEventListener("visibilitychange", onVisibility);
     window.addEventListener("blur", onBlur);

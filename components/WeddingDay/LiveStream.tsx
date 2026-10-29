@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
+import { holdMusic, releaseMusic } from "@/components/Music/Music";
 import type { Content } from "@/lib/wedding";
 import { youtubeId } from "@/lib/youtube";
 
@@ -21,6 +22,23 @@ const LIVE_FOR_MS = 3 * HOUR;
 const MAX_TIMEOUT_MS = 2 ** 31 - 1;
 
 const getServerSnapshot = (): Phase => "upcoming";
+
+const PLAYER_ORIGIN = "https://www.youtube-nocookie.com";
+// YouTube's player states: playing, buffering → the song steps aside; paused, ended → it may return.
+const PLAYING = [1, 3];
+const STOPPED = [0, 2];
+
+/** The player state in one of YouTube's messages, if it carries one. */
+function playerState(data: unknown): number | undefined {
+  try {
+    const message = typeof data === "string" ? JSON.parse(data) : data;
+    if (message?.event === "onStateChange") return message.info;
+    if (message?.event === "infoDelivery") return message.info?.playerState;
+  } catch {
+    // Not one of YouTube's messages.
+  }
+  return undefined;
+}
 
 function phaseAt(now: number, start: number): Phase {
   if (now < start - EMBED_LEAD_MS) return "upcoming";
@@ -59,6 +77,30 @@ export function LiveStream({ url, startsAt, copy }: LiveStreamProps) {
   );
   const phase = useSyncExternalStore(subscribe, () => phaseAt(Date.now(), start), getServerSnapshot);
 
+  // The song steps aside while the stream plays and comes back when it stops.
+  // The player reports its state by message once we say we're listening.
+  const frame = useRef<HTMLIFrameElement>(null);
+  useEffect(() => {
+    const iframe = frame.current;
+    if (!iframe) return;
+    const listen = () =>
+      iframe.contentWindow?.postMessage(JSON.stringify({ event: "listening", id: "livestream", channel: "widget" }), PLAYER_ORIGIN);
+    const onMessage = (event: MessageEvent) => {
+      if (event.source !== iframe.contentWindow || event.origin !== PLAYER_ORIGIN) return;
+      const state = playerState(event.data);
+      if (state === undefined) return;
+      if (PLAYING.includes(state)) holdMusic("stream");
+      else if (STOPPED.includes(state)) releaseMusic("stream");
+    };
+    iframe.addEventListener("load", listen);
+    window.addEventListener("message", onMessage);
+    return () => {
+      iframe.removeEventListener("load", listen);
+      window.removeEventListener("message", onMessage);
+      releaseMusic("stream");
+    };
+  }, [phase]);
+
   const playButton = (label: string) => (
     <a
       href={url}
@@ -87,7 +129,8 @@ export function LiveStream({ url, startsAt, copy }: LiveStreamProps) {
       </p>
       <div className="aspect-video w-full overflow-hidden bg-surface">
         <iframe
-          src={`https://www.youtube-nocookie.com/embed/${id}`}
+          ref={frame}
+          src={`${PLAYER_ORIGIN}/embed/${id}?enablejsapi=1`}
           title={copy.cta}
           allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
           allowFullScreen
