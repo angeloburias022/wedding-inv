@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./support/test";
 import { expectSongPlaying, expectSongQuiet, openEnvelope, several, story } from "./support/invitation";
 
 const clip = (page: Page) => page.locator("#story video");
@@ -7,6 +7,18 @@ const clipState = (page: Page) =>
 const clipSeconds = (page: Page) => clip(page).evaluate((video: HTMLVideoElement) => video.currentTime);
 /** What the mute control in the browser's own player does when the guest turns the sound on. */
 const unmute = (page: Page) => clip(page).evaluate((video: HTMLVideoElement) => (video.muted = false));
+
+/**
+ * The clip is on screen and has played a couple of seconds, as it has by the time a
+ * guest reaches for its controls or scrolls on. In WebKit on Linux (GitHub's test
+ * machines), seeking or pausing in the clip's first moments, while its player is still
+ * starting up, froze the page for about 29 seconds; a couple of seconds in, it's instant.
+ */
+async function clipUnderWay(page: Page) {
+  await clip(page).scrollIntoViewIfNeeded();
+  await expect.poll(() => clipState(page)).toEqual({ playing: true, muted: true });
+  await expect.poll(() => clipSeconds(page)).toBeGreaterThan(2);
+}
 
 test.describe("the proposal clip", () => {
   test("plays silently by itself once it is on screen, with the song still on", async ({ page }) => {
@@ -18,8 +30,7 @@ test.describe("the proposal clip", () => {
 
   test("rests when scrolled away", async ({ page }) => {
     await openEnvelope(page, several.code);
-    await clip(page).scrollIntoViewIfNeeded();
-    await expect.poll(async () => (await clipState(page)).playing).toBe(true);
+    await clipUnderWay(page);
     await page.locator("#rsvp").scrollIntoViewIfNeeded();
     await expect.poll(async () => (await clipState(page)).playing).toBe(false);
   });
@@ -32,8 +43,7 @@ test.describe("the proposal clip", () => {
 
   test("lets the guest skip ahead and keeps playing from there", async ({ page }) => {
     await openEnvelope(page, several.code);
-    await clip(page).scrollIntoViewIfNeeded();
-    await expect.poll(async () => (await clipState(page)).playing).toBe(true);
+    await clipUnderWay(page);
 
     // What dragging the player's scrubber does.
     await clip(page).evaluate((video: HTMLVideoElement) => (video.currentTime = 30));
@@ -43,10 +53,8 @@ test.describe("the proposal clip", () => {
 
   test("turns its sound on from where it is, and the song steps aside", async ({ page }) => {
     await openEnvelope(page, several.code);
-    await clip(page).scrollIntoViewIfNeeded();
-    await expect.poll(() => clipState(page)).toEqual({ playing: true, muted: true });
+    await clipUnderWay(page);
     await expectSongPlaying(page);
-    await expect.poll(() => clipSeconds(page)).toBeGreaterThan(2);
     const before = await clipSeconds(page);
 
     await unmute(page);
@@ -61,8 +69,7 @@ test.describe("the proposal clip", () => {
 
   test("goes quiet again when scrolled away with the sound on", async ({ page }) => {
     await openEnvelope(page, several.code);
-    await clip(page).scrollIntoViewIfNeeded();
-    await expect.poll(async () => (await clipState(page)).playing).toBe(true);
+    await clipUnderWay(page);
     await unmute(page);
     await expectSongQuiet(page);
 

@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./support/test";
 import { arrive, content, guests, nameOnEnvelope, openEnvelope, seal, several, skipLink, wedding } from "./support/invitation";
 
 test.describe("the envelope", () => {

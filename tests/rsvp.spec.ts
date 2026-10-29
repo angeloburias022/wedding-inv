@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./support/test";
 import { content, openEnvelope, several, sheetRows, single } from "./support/invitation";
 
 const rsvp = (page: Page) => page.locator("#rsvp");

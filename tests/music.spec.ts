@@ -1,10 +1,10 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./support/test";
 import { arrive, content, expectSongPlaying, expectSongQuiet, openEnvelope, seal, several, skipLink, song, wedding } from "./support/invitation";
 
 test.skip(!wedding.music, "no song is set in data/wedding.json");
 
-const pause = (page: import("@playwright/test").Page) => page.getByRole("button", { name: content.music.pause });
-const play = (page: import("@playwright/test").Page) => page.getByRole("button", { name: content.music.play });
+const pause = (page: import("./support/test").Page) => page.getByRole("button", { name: content.music.pause });
+const play = (page: import("./support/test").Page) => page.getByRole("button", { name: content.music.play });
 
 test.describe("the song", () => {
   test("is silent until the seal is tapped, then plays from its opening cue", async ({ page }) => {
