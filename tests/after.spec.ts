@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "./support/test";
+import { streamStatusOf, type StreamStatus } from "../lib/youtube";
 import { content, expectSongPlaying, expectSongQuiet, openEnvelope, several, wedding } from "./support/invitation";
 
 const MINUTE = 60 * 1000;
@@ -57,6 +58,10 @@ test.describe("as the wedding comes and goes", () => {
   });
 });
 
+/** What /api/stream-status answers this page: YouTube's view of the stream. */
+const youTubeSays = (page: Page, status: StreamStatus) =>
+  page.route("**/api/stream-status", (route) => route.fulfill({ json: { status } }));
+
 test.describe("the livestream", () => {
   const stream = (page: Page) => page.locator("#livestream");
   const player = (page: Page) => stream(page).locator("iframe");
@@ -67,6 +72,8 @@ test.describe("the livestream", () => {
     test.skip(!wedding.onlineCeremony.enabled || !wedding.onlineCeremony.url, "no livestream link yet");
     // The player itself isn't needed, only where it points: keep YouTube out of the test run.
     await page.route(/youtube(-nocookie)?\.com/, (route) => route.abort());
+    // YouTube can't say by default, so the badge follows the clock; tests below give it an answer.
+    await youTubeSays(page, "unknown");
   });
 
   test("weeks before, is a button to the stream on YouTube", async ({ page }) => {
@@ -132,5 +139,55 @@ test.describe("the livestream", () => {
     await playerSays(page, 2);
     await page.waitForTimeout(500);
     await expectSongQuiet(page);
+  });
+
+  test.describe("'Live now' follows YouTube, not just the clock", () => {
+    const badge = (page: Page) => stream(page).getByRole("status");
+
+    test("at 2 PM with the stream not started yet, it is starting soon", async ({ page }) => {
+      await youTubeSays(page, "upcoming");
+      await openAt(page, streamStart + 10 * MINUTE);
+      await expect(badge(page)).toHaveText(content.onlineCeremony.startingSoon);
+    });
+
+    test("running late past the usual three hours, it is still live", async ({ page }) => {
+      await youTubeSays(page, "live");
+      await openAt(page, streamStart + 4 * HOUR);
+      await expect(badge(page)).toHaveText(content.onlineCeremony.liveNow);
+    });
+
+    test("ended early, it is the replay", async ({ page }) => {
+      await youTubeSays(page, "ended");
+      await openAt(page, streamStart + HOUR);
+      await expect(badge(page)).toHaveText(content.onlineCeremony.replay);
+    });
+
+    test("turns live on a page left open, once YouTube says so", async ({ page }) => {
+      await youTubeSays(page, "upcoming");
+      await openAt(page, streamStart - 10 * MINUTE);
+      await expect(badge(page)).toHaveText(content.onlineCeremony.startingSoon);
+
+      await youTubeSays(page, "live");
+      // The page asks every 30 seconds, and straight away when the guest comes back to the tab.
+      await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+      await expect(badge(page)).toHaveText(content.onlineCeremony.liveNow);
+    });
+  });
+});
+
+test.describe("the stream status", () => {
+  test("comes from YouTube, shared for 30 seconds", async ({ request }) => {
+    const response = await request.get("/api/stream-status");
+    expect(await response.json()).toEqual({ status: "live" });
+    expect(response.headers()["cache-control"]).toContain("s-maxage=30");
+  });
+
+  test("reads each of YouTube's answers", () => {
+    expect(streamStatusOf({ snippet: { liveBroadcastContent: "upcoming" } })).toBe("upcoming");
+    expect(streamStatusOf({ snippet: { liveBroadcastContent: "live" } })).toBe("live");
+    expect(
+      streamStatusOf({ snippet: { liveBroadcastContent: "none" }, liveStreamingDetails: { actualEndTime: "2027-02-10T05:00:00Z" } }),
+    ).toBe("ended");
+    expect(streamStatusOf(undefined)).toBe("unknown");
   });
 });
