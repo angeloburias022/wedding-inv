@@ -5,6 +5,7 @@ import { submitRsvp, type RsvpState } from "@/app/actions/rsvp";
 import { SectionHeader } from "@/components/Invitation/SectionHeader";
 import { Reveal } from "@/components/Motion/Reveal";
 import { AddToCalendar, type CalendarLinks } from "@/components/WeddingDay/AddToCalendar";
+import { useWeddingPhase } from "@/components/WeddingDay/useWeddingPhase";
 import type { Content } from "@/lib/wedding";
 import { markReplied } from "./replied";
 
@@ -38,6 +39,10 @@ export function RSVP({ code, greeting, names, copy, calendarCopy, calendar }: RS
   useEffect(() => {
     if (state.status === "success") markReplied(code);
   }, [state, code]);
+
+  // Replies close once the wedding is over; the invitation becomes a keepsake.
+  const phase = useWeddingPhase();
+  if (phase === "after") return null;
 
   return (
     <section id="rsvp" aria-labelledby="rsvp-title" className="bg-surface/80 px-6 py-24 md:py-32">

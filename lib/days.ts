@@ -7,3 +7,12 @@ export function dayIn(ms: number, timeZone: string): string {
 export function daysBetween(from: string, to: string): number {
   return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000);
 }
+
+/** Before the ceremony, after it on the wedding day, or any later day (in the wedding's time zone). */
+export type WeddingPhase = "before" | "underway" | "after";
+
+export function weddingPhaseAt(ms: number, startsAt: string, timeZone: string): WeddingPhase {
+  const start = new Date(startsAt).getTime();
+  if (ms < start) return "before";
+  return dayIn(ms, timeZone) === dayIn(start, timeZone) ? "underway" : "after";
+}

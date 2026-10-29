@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import type { Content } from "@/lib/wedding";
+import { useWeddingPhase } from "./useWeddingPhase";
 
 /** Where each choice in the menu goes; built on the server for this guest's invitation. */
 export type CalendarLinks = {
@@ -43,6 +44,10 @@ export function AddToCalendar({ links, copy, emphasis }: AddToCalendarProps) {
       document.removeEventListener("keydown", onKeyDown);
     };
   }, [open]);
+
+  // Nothing to save once the ceremony has started.
+  const phase = useWeddingPhase();
+  if (phase === "underway" || phase === "after") return null;
 
   const choices = [
     { href: links.google, label: copy.google, hint: copy.googleHint, arrow: "↗", newTab: true },

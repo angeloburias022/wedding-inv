@@ -1,8 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useWeddingPhase } from "@/components/WeddingDay/useWeddingPhase";
 
-type Chapter = { id: string; label: string };
+type Chapter = {
+  id: string;
+  label: string;
+  /** Leaves the dots once the wedding is over, with its section (the RSVP). */
+  endsAfterWedding?: boolean;
+};
 
 /** Scrolled this far (px), the guest is reading and the dots appear. */
 const SHOW_AFTER_PX = 200;
@@ -12,9 +18,14 @@ const SHOW_AFTER_PX = 200;
  * left, and a tap to jump (e.g. straight to the RSVP). Appears once the guest
  * starts scrolling; labels show on hover and to screen readers.
  */
-export function ChapterNav({ chapters }: { chapters: Chapter[] }) {
+export function ChapterNav({ chapters: allChapters }: { chapters: Chapter[] }) {
   const [visible, setVisible] = useState(false);
   const [active, setActive] = useState<string | null>(null);
+  const over = useWeddingPhase() === "after";
+  const chapters = useMemo(
+    () => allChapters.filter((chapter) => !(over && chapter.endsAfterWedding)),
+    [allChapters, over],
+  );
 
   useEffect(() => {
     const onScroll = () => setVisible(window.scrollY > SHOW_AFTER_PX);

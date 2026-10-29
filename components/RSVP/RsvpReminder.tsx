@@ -1,5 +1,6 @@
 "use client";
 
+import { useWeddingPhase } from "@/components/WeddingDay/useWeddingPhase";
 import { useHasReplied } from "./replied";
 
 type RsvpReminderProps = {
@@ -11,7 +12,8 @@ type RsvpReminderProps = {
 /** A soft nudge in the closing for guests who reach the end without replying; gone once they have. */
 export function RsvpReminder({ code, message, cta }: RsvpReminderProps) {
   const replied = useHasReplied(code);
-  if (replied !== false) return null;
+  const phase = useWeddingPhase();
+  if (replied !== false || phase === "after") return null;
 
   return (
     <div className="flex flex-col items-center gap-3">

@@ -73,10 +73,10 @@ export default async function InvitePage({ params }: PageProps<"/invite/[code]">
             { id: "story", label: content.story.eyebrow, on: sections.story },
             { id: "day", label: content.day.eyebrow, on: sections.day },
             { id: "place", label: content.place.eyebrow, on: sections.place },
-            { id: "rsvp", label: content.rsvp.eyebrow, on: sections.rsvp },
+            { id: "rsvp", label: content.rsvp.eyebrow, on: sections.rsvp, endsAfterWedding: true },
           ]
             .filter((chapter) => chapter.on)
-            .map(({ id, label }) => ({ id, label }))}
+            .map(({ id, label, endsAfterWedding }) => ({ id, label, endsAfterWedding }))}
         />
         {wedding.portrait && (
           <Portrait src={wedding.portrait} coupleName={wedding.couple.displayName} date={wedding.date.display} />

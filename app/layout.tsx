@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant, Jost } from "next/font/google";
 import { FloralCorners } from "@/components/Decor/FloralCorners";
+import { previewDateScript } from "@/components/Dev/previewDate";
 import { MotionProvider } from "@/components/Motion/MotionProvider";
 import { themeInitScript } from "@/components/Theme/theme";
 import { wedding } from "@/lib/wedding";
@@ -40,6 +41,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        {/* Development only: ?now=after and friends (components/Dev/previewDate.ts). */}
+        {process.env.NODE_ENV === "development" && (
+          <script dangerouslySetInnerHTML={{ __html: previewDateScript(wedding.date.startsAt) }} />
+        )}
       </head>
       <body>
         <FloralCorners />
