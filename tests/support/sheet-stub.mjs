@@ -4,10 +4,6 @@
 //
 //   POST /hook       what the site calls; answers "ok", "forbidden", or a refusal
 //   GET  /requests   everything received so far, as JSON
-//
-// It also stands in for the YouTube Data API, for the livestream's "Live now":
-//
-//   GET  /youtube/videos   the wedding stream, live (only with the test key)
 import { createServer } from "node:http";
 
 const SECRET = "test-secret";
@@ -17,17 +13,6 @@ createServer((request, response) => {
   if (request.method === "GET" && request.url === "/requests") {
     response.writeHead(200, { "Content-Type": "application/json" });
     response.end(JSON.stringify(received));
-    return;
-  }
-  if (request.method === "GET" && request.url?.startsWith("/youtube/videos?")) {
-    const query = new URL(request.url, "http://stub").searchParams;
-    if (query.get("key") !== "test-key") return response.writeHead(403).end();
-    response.writeHead(200, { "Content-Type": "application/json" });
-    response.end(
-      JSON.stringify({
-        items: [{ id: query.get("id"), snippet: { liveBroadcastContent: "live" }, liveStreamingDetails: {} }],
-      }),
-    );
     return;
   }
   if (request.method === "POST" && request.url === "/hook") {

@@ -1,9 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
 import { holdMusic, releaseMusic } from "@/components/Music/Music";
 import type { Content } from "@/lib/wedding";
-import { youtubeId, type StreamStatus } from "@/lib/youtube";
+import { youtubeId } from "@/lib/youtube";
 
 type LiveStreamProps = {
   url: string;
@@ -18,10 +18,6 @@ const HOUR = 60 * 60 * 1000;
 const EMBED_LEAD_MS = 2 * HOUR;
 /** …and "Live now" shows for this long after it, then "Watch the replay". */
 const LIVE_FOR_MS = 3 * HOUR;
-/** How often an open page asks whether the stream is live (the server shares one answer per 30 s). */
-const STATUS_EVERY_MS = 30 * 1000;
-/** Stop asking this long after the start, even if YouTube never says it ended. */
-const STATUS_FOR_MS = 12 * HOUR;
 /** setTimeout's limit (~24.8 days); pages opened earlier update on the next visit instead. */
 const MAX_TIMEOUT_MS = 2 ** 31 - 1;
 
@@ -31,45 +27,6 @@ const PLAYER_ORIGIN = "https://www.youtube-nocookie.com";
 // YouTube's player states: playing, buffering → the song steps aside; paused, ended → it may return.
 const PLAYING = [1, 3];
 const STOPPED = [0, 2];
-
-/**
- * Whether the stream is really live, from /api/stream-status, while it could
- * be: from when the player appears until YouTube says it has ended. Asked again
- * when the guest comes back to the tab. "unknown" leaves the badge to the clock.
- */
-function useStreamStatus(asking: boolean, until: number): StreamStatus {
-  const [status, setStatus] = useState<StreamStatus>("unknown");
-  useEffect(() => {
-    if (!asking) return;
-    let cancelled = false;
-    const stop = () => {
-      clearInterval(timer);
-      document.removeEventListener("visibilitychange", ask);
-    };
-    const ask = async () => {
-      if (Date.now() > until) return stop();
-      if (document.hidden) return;
-      try {
-        const response = await fetch("/api/stream-status");
-        const { status } = (await response.json()) as { status: StreamStatus };
-        if (cancelled) return;
-        setStatus(status);
-        // Over for good: nothing more to ask.
-        if (status === "ended") stop();
-      } catch {
-        // Offline for a moment: keep the last answer.
-      }
-    };
-    const timer = setInterval(ask, STATUS_EVERY_MS);
-    document.addEventListener("visibilitychange", ask);
-    ask();
-    return () => {
-      cancelled = true;
-      stop();
-    };
-  }, [asking, until]);
-  return status;
-}
 
 /** The player state in one of YouTube's messages, if it carries one. */
 function playerState(data: unknown): number | undefined {
@@ -94,8 +51,7 @@ function phaseAt(now: number, start: number): Phase {
  * The ceremony stream (handoff §21). Pages are prerendered, so the phase is
  * worked out in the browser: a play button to YouTube (where guests can set a
  * reminder) until two hours before, then the player embedded here with a
- * status badge — starting soon, live now, then the replay. The badge follows
- * YouTube's own answer (/api/stream-status) and falls back to the clock.
+ * status badge — starting soon, live now, then the replay.
  */
 export function LiveStream({ url, startsAt, copy }: LiveStreamProps) {
   const id = youtubeId(url);
@@ -121,7 +77,6 @@ export function LiveStream({ url, startsAt, copy }: LiveStreamProps) {
   );
   const phase = useSyncExternalStore(subscribe, () => phaseAt(Date.now(), start), getServerSnapshot);
 
-  const status = useStreamStatus(phase !== "upcoming" && Boolean(id), start + STATUS_FOR_MS);
   // The song steps aside while the stream plays and comes back when it stops.
   // The player reports its state by message once we say we're listening.
   const frame = useRef<HTMLIFrameElement>(null);
@@ -162,15 +117,12 @@ export function LiveStream({ url, startsAt, copy }: LiveStreamProps) {
 
   if (phase === "upcoming" || !id) return playButton(copy.cta);
 
-  // YouTube's answer when there is one; otherwise the clock's best guess.
-  const shown =
-    status === "live" ? "live" : status === "upcoming" ? "soon" : status === "ended" ? "replay" : phase;
-  const badge = { soon: copy.startingSoon, live: copy.liveNow, replay: copy.replay }[shown];
+  const badge = { soon: copy.startingSoon, live: copy.liveNow, replay: copy.replay }[phase];
 
   return (
     <div className="flex w-full flex-col items-center gap-5">
       <p className="label flex items-center gap-2 text-accent" role="status">
-        {shown === "live" && (
+        {phase === "live" && (
           <span aria-hidden className="size-2 animate-pulse rounded-full bg-accent motion-reduce:animate-none" />
         )}
         {badge}

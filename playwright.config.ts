@@ -3,7 +3,7 @@ import { defineConfig, devices } from "@playwright/test";
 // The tests run against a production build on its own port, so they never
 // depend on (or disturb) `npm run dev`.
 const SITE_PORT = 3100;
-// Stands in for the Google Sheet (RSVPs sent during tests go here, never to the real one) and YouTube's API.
+// Stands in for the Google Sheet: RSVPs sent during tests go here, never to the real one.
 const SHEET_PORT = 3199;
 
 export default defineConfig({
@@ -45,9 +45,6 @@ export default defineConfig({
       env: {
         RSVP_WEBHOOK_URL: `http://127.0.0.1:${SHEET_PORT}/hook`,
         RSVP_WEBHOOK_SECRET: "test-secret",
-        // The livestream's status comes from the stand-in too, never from YouTube.
-        YOUTUBE_API_URL: `http://127.0.0.1:${SHEET_PORT}/youtube`,
-        YOUTUBE_API_KEY: "test-key",
       },
       reuseExistingServer: !process.env.CI,
     },

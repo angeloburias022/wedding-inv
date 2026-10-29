@@ -16,20 +16,3 @@ export function youtubeId(url: string): string | null {
     return null;
   }
 }
-
-/** Where the stream really is, from YouTube; "unknown" when YouTube can't say (no key, no answer). */
-export type StreamStatus = "upcoming" | "live" | "ended" | "unknown";
-
-/** One video from the YouTube Data API (videos.list with snippet and liveStreamingDetails). */
-type VideoItem = {
-  snippet?: { liveBroadcastContent?: string };
-  liveStreamingDetails?: { actualStartTime?: string; actualEndTime?: string };
-};
-
-export function streamStatusOf(video: VideoItem | undefined): StreamStatus {
-  const broadcast = video?.snippet?.liveBroadcastContent;
-  if (broadcast === "live") return "live";
-  if (broadcast === "upcoming") return "upcoming";
-  if (video?.liveStreamingDetails?.actualEndTime) return "ended";
-  return "unknown";
-}
